@@ -1,0 +1,169 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Standard user profile including basic location information to enable sticker coordinates",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Unique user ID matching Auth UID"
+        },
+        "name": {
+          "type": "string",
+          "description": "Display name"
+        },
+        "email": {
+          "type": "string",
+          "description": "User email address"
+        },
+        "photoURL": {
+          "type": "string",
+          "description": "User avatar photo URL"
+        },
+        "location": {
+          "type": "string",
+          "description": "User neighborhood/locality/city search value"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last updated"
+        }
+      },
+      "required": ["uid", "name", "email", "updatedAt"]
+    },
+    "UserStickers": {
+      "title": "UserStickers",
+      "description": "Inventory of stickers a user owns, detailing quantity. E.g., 'ARG10' -> 3 represents owners has the card and 2 duplicated copies",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "ID of user this inventory belongs to"
+        },
+        "stickers": {
+          "type": "object",
+          "description": "Map mapping sticker codes (e.g., BRA10) to quantitative count"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last inventory sync"
+        }
+      },
+      "required": ["userId", "stickers", "updatedAt"]
+    },
+    "Trade": {
+      "title": "Trade",
+      "description": "A proposal or completed sticker exchange between two collectors",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Trade identifier"
+        },
+        "senderId": {
+          "type": "string",
+          "description": "Trade initiator user ID"
+        },
+        "senderName": {
+          "type": "string",
+          "description": "Trade initiator name"
+        },
+        "receiverId": {
+          "type": "string",
+          "description": "Target collector user ID"
+        },
+        "receiverName": {
+          "type": "string",
+          "description": "Target collector name"
+        },
+        "offeredStickers": {
+          "type": "array",
+          "description": "Stickers offered by sender (sender repeats that receiver wants)"
+        },
+        "requestedStickers": {
+          "type": "array",
+          "description": "Stickers requested from receiver (receiver repeats that sender wants)"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "accepted", "declined"],
+          "description": "Workflow phase of the match coordinator"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Time of trade creation"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Time of state updates"
+        }
+      },
+      "required": ["id", "senderId", "senderName", "receiverId", "receiverName", "offeredStickers", "requestedStickers", "status", "createdAt", "updatedAt"]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "Alert signals indicating match requests or activity from collectors",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Notification ID value"
+        },
+        "userId": {
+          "type": "string",
+          "description": "Recipient collector user ID"
+        },
+        "title": {
+          "type": "string",
+          "description": "Short alert title header"
+        },
+        "body": {
+          "type": "string",
+          "description": "Information text body"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["trade_incoming", "trade_update"],
+          "description": "Category categorization for routing buttons"
+        },
+        "tradeId": {
+          "type": "string",
+          "description": "Contextual trade action identifier hyperlink referent"
+        },
+        "read": {
+          "type": "boolean",
+          "description": "Read confirmation status"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Time triggered"
+        }
+      },
+      "required": ["id", "userId", "title", "body", "type", "read", "createdAt"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "User",
+      "description": "User account lookup records and metadata profiling"
+    },
+    "users/{userId}/inventory/stickers": {
+      "schema": "UserStickers",
+      "description": "The sticker inventory details including owned sets and repeated items"
+    },
+    "trades/{tradeId}": {
+      "schema": "Trade",
+      "description": "Trade coordination sessions"
+    },
+    "notifications/{notificationId}": {
+      "schema": "Notification",
+      "description": "Real-time user alerts for matches"
+    }
+  }
+}

@@ -1,0 +1,99 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Guard functions
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+    
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+    
+    function incoming() {
+      return request.resource.data;
+    }
+    
+    function existing() {
+      return resource.data;
+    }
+
+    // User profiles
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create: if isOwner(userId)
+        && incoming().uid == request.auth.uid
+        && incoming().name is string && incoming().name.size() <= 100
+        && incoming().email is string && incoming().email.size() <= 100
+        && (incoming().photoURL == null || (incoming().photoURL is string && incoming().photoURL.size() <= 1000))
+        && (incoming().location == null || (incoming().location is string && incoming().location.size() <= 100))
+        && incoming().updatedAt is string;
+        
+      allow update: if isOwner(userId)
+        && incoming().uid == request.auth.uid
+        && incoming().name is string && incoming().name.size() <= 100
+        && incoming().email == existing().email
+        && (incoming().photoURL == null || (incoming().photoURL is string && incoming().photoURL.size() <= 1000))
+        && (incoming().location == null || (incoming().location is string && incoming().location.size() <= 100))
+        && incoming().updatedAt is string;
+
+      // User inventory subcollection
+      match /inventory/stickers {
+        allow read: if isSignedIn();
+        allow write: if isOwner(userId)
+          && incoming().userId == userId
+          && incoming().stickers is map
+          && incoming().updatedAt is string;
+      }
+    }
+
+    // Trades collection
+    match /trades/{tradeId} {
+      allow read: if isSignedIn() && (resource.data.senderId == request.auth.uid || resource.data.receiverId == request.auth.uid);
+      
+      allow create: if isSignedIn()
+        && isValidId(tradeId)
+        && incoming().id == tradeId
+        && incoming().senderId == request.auth.uid
+        && incoming().status == 'pending'
+        && incoming().createdAt is string
+        && incoming().updatedAt is string
+        && incoming().senderName is string && incoming().senderName.size() <= 150
+        && incoming().receiverId is string && incoming().receiverId.size() <= 64
+        && incoming().receiverName is string && incoming().receiverName.size() <= 150
+        && incoming().offeredStickers is list
+        && incoming().requestedStickers is list;
+        
+      allow update: if isSignedIn()
+        && (existing().senderId == request.auth.uid || existing().receiverId == request.auth.uid)
+        && incoming().id == existing().id
+        && incoming().senderId == existing().senderId
+        && incoming().receiverId == existing().receiverId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt is string
+        && (
+          // Allow receiver to accept/decline, or sender to cancel (change status to accepted, declined, cancelled)
+          incoming().status is string && (incoming().status == 'accepted' || incoming().status == 'declined' || incoming().status == 'cancelled')
+        );
+        
+      allow delete: if isSignedIn() && existing().senderId == request.auth.uid && existing().status == 'pending';
+    }
+
+    // Notifications collection
+    match /notifications/{notificationId} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidId(notificationId) && incoming().id == notificationId;
+      allow update: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
+    }
+  }
+}

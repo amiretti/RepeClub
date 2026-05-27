@@ -1,0 +1,8 @@
+{
+  "name": "Control Figuritas 2026",
+  "description": "Controla tus figuritas del álbum Panini Mundial 2026, marca tus repetidas y encuentra amigos cerca para intercambiar automáticamente.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
