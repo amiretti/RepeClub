@@ -1,17 +1,49 @@
 # RepeClub
 
-RepeClub es una app para coleccionistas de figuritas: marcas las que tienes, detectas repetidas y encuentras personas de tu zona para hacer canjes mas rapido.
+Tu album, tus repes, tus canjes. Todo en un solo lugar.
+
+## Portada
+
+### ⚽ La forma mas simple de completar tu album
+
+RepeClub te ayuda a organizar tu coleccion, detectar repetidas y encontrar canjes con gente cerca de ti.
+
+![Portada RepeClub](docs/screenshots/repeclub-social-banner-1200x630.png)
+
+Imagen social recomendada para compartir el repo:
+`docs/screenshots/repeclub-social-banner-1200x630.png`
+
+### ✨ Highlights
+
+- Control rapido de faltantes y repetidas.
+- Sugerencias de canje automaticas.
+- Experiencia clara para usar desde el celu.
+- Modo online (Firebase) y modo local/offline.
 
 ## Parte 1: para todo publico
 
-### Que puedes hacer en RepeClub
+### Bienvenida
+
+Tu album, tus repes, tus canjes. Todo en un solo lugar.
+
+### Capturas de la app
+
+#### Vista de coleccion
+
+![Vista de coleccion de RepeClub](docs/screenshots/album-view.png)
+
+#### Vista de canjes
+
+![Vista de canjes de RepeClub](docs/screenshots/canjes-view.png)
+
+### 🎯 Que puedes hacer en RepeClub
 
 - Llevar control de tu album de forma simple.
 - Marcar figuritas faltantes y repetidas.
 - Ver sugerencias de canje con otros coleccionistas.
 - Gestionar propuestas de canje desde la misma app.
 
-### Como funciona la app
+### ⚙️ Como funciona la app
 
 1. Entras y creas/inicias tu perfil.
 2. Cargas tu coleccion: que tienes, que te falta y que te sobra.
@@ -19,12 +51,12 @@ RepeClub es una app para coleccionistas de figuritas: marcas las que tienes, det
 4. La app te muestra matches de canje utiles.
 5. Enviais propuesta, coordinan y listo.
 
-### Modos de uso
+### 🌐 Modos de uso
 
 - Modo online con Firebase: sincroniza tus datos y canjes entre dispositivos.
 - Modo local/offline: puedes probar la app sin Firebase, guardando datos localmente.
 
-### Para quien esta pensada
+### 🙌 Para quien esta pensada
 
 - Coleccionistas que quieren completar album mas rapido.
 - Amigos, cursos, grupos de barrio o comunidades que canjean seguido.
@@ -32,14 +64,14 @@ RepeClub es una app para coleccionistas de figuritas: marcas las que tienes, det
 
 ## Parte 2: tecnica
 
-### Stack principal
+### 🧱 Stack principal
 
 - Frontend: React 19 + TypeScript
 - Build tool: Vite 6
 - UI: Tailwind CSS 4 + Lucide Icons + Motion
 - Backend/BaaS: Firebase (Auth + Firestore)
 
-### Estructura general
+### 🗂️ Estructura general
 
 - `src/App.tsx`: layout principal, onboarding y navegacion.
 - `src/components/AlbumGrid.tsx`: gestion visual de figuritas.
@@ -50,7 +82,7 @@ RepeClub es una app para coleccionistas de figuritas: marcas las que tienes, det
 - `firebase-blueprint.json`: referencia de entidades y colecciones Firestore.
 - `firestore.rules`: reglas de seguridad de Firestore.
 
-### Variables de entorno
+### 🔐 Variables de entorno
 
 Crea `.env.local` a partir de `.env.example` y completa al menos estas variables para habilitar Firebase:
 
@@ -65,14 +97,14 @@ Crea `.env.local` a partir de `.env.example` y completa al menos estas variables
 
 Si no defines estas variables, la app arranca en modo local/offline.
 
-### Scripts disponibles
+### 🛠️ Scripts disponibles
 
 - `npm run dev`: inicia entorno local en puerto 3000.
 - `npm run build`: genera build de produccion en `dist/`.
 - `npm run preview`: sirve localmente el build generado.
 - `npm run lint`: chequeo de tipos con TypeScript.
 
-### Levantar el proyecto en local
+### 🚀 Levantar el proyecto en local
 
 1. Instala dependencias:
 
@@ -86,6 +118,12 @@ npm install
 cp .env.example .env.local
 ```
 
+En Windows PowerShell puedes usar:
+
+```powershell
+Copy-Item .env.example .env.local
+```
+
 3. Completa valores Firebase en `.env.local`.
 4. Inicia la app:
 
@@ -93,7 +131,7 @@ cp .env.example .env.local
 npm run dev
 ```
 
-### Despliegue
+### ☁️ Despliegue
 
 Como es una app Vite, puedes desplegar `dist/` en cualquier hosting estatico.
 
@@ -113,7 +151,7 @@ Como es una app Vite, puedes desplegar `dist/` en cualquier hosting estatico.
 4. Agrega variables `VITE_FIREBASE_*` en Site settings > Environment variables.
 5. Deploy.
 
-### Checklist de seguridad antes de publicar repo
+### ✅ Checklist de seguridad antes de publicar repo
 
 - No subir `.env.local` ni secretos.
 - Verificar que `.env.example` solo tenga placeholders.
@@ -121,7 +159,7 @@ Como es una app Vite, puedes desplegar `dist/` en cualquier hosting estatico.
 - Rotar claves si alguna vez se expusieron en commits historicos.
 - Ejecutar una busqueda rapida de patrones sensibles antes de cada release.
 
-### Notas utiles para el equipo
+### 🧠 Notas utiles para el equipo
 
 - El nombre del paquete en `package.json` sigue como `react-example`; se puede renombrar si quieren alinear branding.
 - Si cambian el modelo de datos, actualicen tambien `firebase-blueprint.json` para mantener documentacion tecnica consistente.
