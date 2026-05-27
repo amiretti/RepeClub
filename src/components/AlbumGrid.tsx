@@ -9,6 +9,7 @@ import { SPECIALS, TEAMS, getStickersForGroup, TOTAL_STICKER_COUNT } from '../ca
 import { getStickerNameAndTeam } from '../stickerData';
 import { Check, Plus, Minus, Search, Sparkles, Filter, Trophy } from 'lucide-react';
 import { motion } from 'motion/react';
+import { FlagIcon } from './FlagIcon';
 
 export const AlbumGrid: React.FC = () => {
   const { inventory, updateStickerCount } = useApp();
@@ -213,7 +214,7 @@ export const AlbumGrid: React.FC = () => {
                     : 'bg-white border-slate-205 text-slate-600 hover:bg-slate-50'
                 }`}
               >
-                <span>{group.flag}</span>
+                <FlagIcon emoji={group.flag} label={group.name} />
                 <span>{group.name}</span>
               </button>
             );
@@ -224,8 +225,15 @@ export const AlbumGrid: React.FC = () => {
       {/* 4. Stickers List Content */}
       <div>
         <div className="flex justify-between items-center mb-2 px-1">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-            {searchQuery ? 'Resultados de búsqueda' : `${activeGroup.flag} ${activeGroup.name}`}
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider inline-flex items-center gap-1">
+            {searchQuery ? (
+              'Resultados de búsqueda'
+            ) : (
+              <>
+                <FlagIcon emoji={activeGroup.flag} label={activeGroup.name} />
+                <span>{activeGroup.name}</span>
+              </>
+            )}
           </span>
           <span className="text-[10px] font-mono font-medium text-slate-400">
             {filteredStickers.length} figus
