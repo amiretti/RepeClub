@@ -8,10 +8,13 @@ import { UserProfile, UserStickerInventory, TradeOffer, AppNotification } from '
 import { db, auth, isFirebaseConfigured, handleFirestoreError, OperationType } from '../firebase';
 import {
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   GoogleAuthProvider,
   signOut as firebaseSignOut,
   onAuthStateChanged,
-  User as FirebaseUser
+  User as FirebaseUser,
+  AuthError
 } from 'firebase/auth';
 import {
   doc,
@@ -34,6 +37,7 @@ interface AppContextType {
   notifications: AppNotification[];
   isDemoMode: boolean;
   loading: boolean;
+  authInProgress: boolean;
   signIn: () => Promise<void>;
   signOut: () => Promise<void>;
   updateStickerCount: (code: string, count: number) => Promise<void>;
@@ -52,6 +56,7 @@ const LS_INVENTORY = 'panini2026_inventory';
 const LS_TRADES = 'panini2026_trades';
 const LS_NOTIFICATIONS = 'panini2026_notifications';
 const LS_MOCK_USERS = 'panini2026_mock_users';
+const REDIRECT_FLOW_KEY = 'repeclub_google_redirect_pending';
 
 // Real mock data representing local collectors for rich demonstration
 const INITIAL_MOCK_USERS = [
@@ -103,6 +108,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [trades, setTrades] = useState<TradeOffer[]>([]);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [loading, setLoading] = useState(true);
+  const [authInProgress, setAuthInProgress] = useState(false);
 
   const isDemoMode = !isFirebaseConfigured;
 
@@ -143,6 +149,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } else {
       // 2. FIREBASE ONLINE MODE
       if (!auth || !db) return;
+
+      getRedirectResult(auth)
+        .then((result) => {
+          if (result?.user) {
+            sessionStorage.removeItem(REDIRECT_FLOW_KEY);
+            setAuthInProgress(false);
+          }
+        })
+        .catch((err: AuthError) => {
+          sessionStorage.removeItem(REDIRECT_FLOW_KEY);
+          setAuthInProgress(false);
+          console.error('Google redirect error:', err);
+          window.dispatchEvent(new CustomEvent('app-error', {
+            detail: {
+              message: 'No pudimos completar el inicio de sesion en iPhone. Proba abrirlo en Safari y volver a tocar "Iniciar con Google".'
+            }
+          }));
+        });
 
       const unsubAuth = onAuthStateChanged(auth, async (fbUser: FirebaseUser | null) => {
         setLoading(true);
@@ -254,6 +278,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             });
 
             setLoading(false);
+            setAuthInProgress(false);
 
             return () => {
               unsubInventory();
@@ -268,10 +293,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             setTrades([]);
             setNotifications([]);
             setLoading(false);
+            setAuthInProgress(false);
           }
         } catch (globalSetupErr) {
           console.error('Fatal initialization error in Auth listener:', globalSetupErr);
           setLoading(false);
+          setAuthInProgress(false);
         }
       });
 
@@ -292,10 +319,32 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     if (!auth) return;
     const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+    setAuthInProgress(true);
     try {
       await signInWithPopup(auth, provider);
     } catch (err) {
+      const authErr = err as AuthError;
+      const shouldFallbackToRedirect =
+        authErr?.code === 'auth/popup-blocked' ||
+        authErr?.code === 'auth/operation-not-supported-in-this-environment';
+
+      if (shouldFallbackToRedirect) {
+        sessionStorage.setItem(REDIRECT_FLOW_KEY, '1');
+        await signInWithRedirect(auth, provider);
+        return;
+      }
+
+      if (authErr?.code === 'auth/unauthorized-domain') {
+        window.dispatchEvent(new CustomEvent('app-error', {
+          detail: {
+            message: 'Dominio no autorizado en Firebase Auth. Agrega tu dominio de Netlify en Authentication > Settings > Authorized domains.'
+          }
+        }));
+      }
+
       console.error('Google Sign-In Error:', err);
+      setAuthInProgress(false);
     }
   };
 
@@ -570,6 +619,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         notifications,
         isDemoMode,
         loading,
+        authInProgress,
         signIn,
         signOut,
         updateStickerCount,
