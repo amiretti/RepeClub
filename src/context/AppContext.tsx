@@ -186,7 +186,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                   name: fbUser.displayName || 'Coleccionista',
                   email: fbUser.email || '',
                   photoURL: fbUser.photoURL || null,
-                  location: 'Mi Ciudad',
+                  location: 'San Vicente',
                   updatedAt: new Date().toISOString()
                 };
                 await setDoc(userDocRef, newProfile);
@@ -199,7 +199,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 name: fbUser.displayName || 'Coleccionista',
                 email: fbUser.email || '',
                 photoURL: fbUser.photoURL || null,
-                location: 'Mi Ciudad',
+                location: 'San Vicente',
                 updatedAt: new Date().toISOString()
               };
             }
@@ -237,11 +237,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 }
               }
               
-              // Add initial mock users to bolster community if no real online users are available
-              setAllUsers([...loadedUsers, ...INITIAL_MOCK_USERS]);
+              // In Firebase mode, only show real collectors from Firestore.
+              setAllUsers(loadedUsers);
             }, (err) => {
               console.warn(`Firestore active users subscription warning: ${err.message}`);
-              setAllUsers(INITIAL_MOCK_USERS);
+              setAllUsers([]);
             });
 
             // Listen to trades for current user
