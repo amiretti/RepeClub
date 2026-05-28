@@ -8,6 +8,8 @@ import { UserProfile, UserStickerInventory, TradeOffer, AppNotification } from '
 import { db, auth, isFirebaseConfigured, handleFirestoreError, OperationType } from '../firebase';
 import {
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   GoogleAuthProvider,
   signOut as firebaseSignOut,
   onAuthStateChanged,
@@ -143,6 +145,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } else {
       // 2. FIREBASE ONLINE MODE
       if (!auth || !db) return;
+
+      // Handle redirect result from mobile Google sign-in
+      getRedirectResult(auth).catch((err) => {
+        console.error('Redirect sign-in error:', err);
+      });
 
       const unsubAuth = onAuthStateChanged(auth, async (fbUser: FirebaseUser | null) => {
         setLoading(true);
@@ -292,10 +299,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     if (!auth) return;
     const provider = new GoogleAuthProvider();
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     try {
-      await signInWithPopup(auth, provider);
+      if (isMobile) {
+        await signInWithRedirect(auth, provider);
+      } else {
+        await signInWithPopup(auth, provider);
+      }
     } catch (err) {
-      console.error('Google Popup Error:', err);
+      console.error('Google Sign-In Error:', err);
     }
   };
 
