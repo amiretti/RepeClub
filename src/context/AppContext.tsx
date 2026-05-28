@@ -110,27 +110,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     if (isDemoMode) {
       // 1. DEMO/LOCAL STORAGE MODE
-      const storedUser = localStorage.getItem(LS_CURRENT_USER);
       const storedInventory = localStorage.getItem(LS_INVENTORY);
       const storedTrades = localStorage.getItem(LS_TRADES);
       const storedNotifications = localStorage.getItem(LS_NOTIFICATIONS);
       const storedMockUsers = localStorage.getItem(LS_MOCK_USERS);
 
-      if (storedUser) {
-        setCurrentUser(JSON.parse(storedUser));
-      } else {
-        // Automatically create a default local demo user so the app is immediately readable for testing
-        const defaultUser: UserProfile = {
-          uid: 'demo_user',
-          name: 'Coleccionista Pro (Invitado)',
-          email: 'invitado@album2026.com',
-          photoURL: null,
-          location: 'Buenos Aires',
-          updatedAt: new Date().toISOString()
-        };
-        setCurrentUser(defaultUser);
-        localStorage.setItem(LS_CURRENT_USER, JSON.stringify(defaultUser));
-      }
+      setCurrentUser(null);
+      localStorage.removeItem(LS_CURRENT_USER);
 
       setInventory(storedInventory ? JSON.parse(storedInventory) : {});
       setTrades(storedTrades ? JSON.parse(storedTrades) : []);
@@ -138,8 +124,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         {
           id: 'notif_welcome',
           userId: 'demo_user',
-          title: '🏆 ¡Bienvenido al Álbum 2026!',
-          body: 'Consigue tus figuritas, marca las repetidas y coordina intercambios en segundos. ¡Completemos el álbum!',
+          title: '🏆 ¡Bienvenid@ al Álbum 2026!',
+          body: 'Sumá tus figus, marcá las repes y armá canjes al toque. ¡Vamos a completar ese álbum!',
           type: 'trade_update',
           tradeId: '',
           read: false,
@@ -296,17 +282,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // SIGN IN FLOW
   const signIn = async () => {
     if (isDemoMode) {
-      // Just reset default local profile so client is logged in
-      const defaultUser: UserProfile = {
-        uid: 'demo_user',
-        name: 'Coleccionista Pro (Invitado)',
-        email: 'invitado@album2026.com',
-        photoURL: null,
-        location: 'Buenos Aires',
-        updatedAt: new Date().toISOString()
-      };
-      setCurrentUser(defaultUser);
-      localStorage.setItem(LS_CURRENT_USER, JSON.stringify(defaultUser));
+      window.dispatchEvent(new CustomEvent('app-error', {
+        detail: {
+          message: 'El modo invitado ya no esta disponible. Configura Firebase para iniciar sesion con Google.'
+        }
+      }));
       return;
     }
 
@@ -376,10 +356,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (!db) return;
       const docRef = doc(db, 'users', currentUser.uid);
       try {
-        await updateDoc(docRef, {
-          location,
+        await setDoc(docRef, {
+          ...nextProfile,
           updatedAt: Timestamp.now().toDate().toISOString()
-        });
+        }, { merge: true });
       } catch (err) {
         handleFirestoreError(err, OperationType.UPDATE, `users/${currentUser.uid}`);
       }
@@ -394,7 +374,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       ? `trade_${Date.now()}` 
       : doc(collection(db!, 'trades')).id;
 
-    const receiverName = allUsers.find(u => u.profile.uid === receiverId)?.profile.name || 'Amigo Coleccionista';
+    const receiverName = allUsers.find(u => u.profile.uid === receiverId)?.profile.name || 'Colega figu';
 
     const newTrade: TradeOffer = {
       id: tradeId,
@@ -414,8 +394,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const newNotification: AppNotification = {
       id: notifId,
       userId: receiverId,
-      title: '🤝 ¡Propuesta de Intercambio Cósmico!',
-      body: `${currentUser.name} quiere cambiar figuritas contigo. Ofrece ${offered.length} y te pide ${requested.length}.`,
+      title: '🤝 ¡Te llegó una propuesta de canje!',
+      body: `${currentUser.name} te quiere canjear figus. Te ofrece ${offered.length} y te pide ${requested.length}.`,
       type: 'trade_incoming',
       tradeId,
       read: false,
@@ -506,15 +486,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const notifId = isDemoMode ? `notif_status_${Date.now()}` : doc(collection(db!, 'notifications')).id;
       
       let alertMsg = '';
-      if (status === 'accepted') alertMsg = '🤝 ¡Aceptó tu propuesta! Intercambio ejecutado con éxito.';
-      if (status === 'declined') alertMsg = '❌ Rechazó la propuesta de intercambio.';
-      if (status === 'cancelled') alertMsg = '🛑 Canceló la propuesta de intercambio.';
+      if (status === 'accepted') alertMsg = '🤝 ¡Te aceptaron la propuesta! Canje listo.';
+      if (status === 'declined') alertMsg = '❌ Te rechazaron la propuesta de canje.';
+      if (status === 'cancelled') alertMsg = '🛑 Se canceló la propuesta de canje.';
 
       const newNotification: AppNotification = {
         id: notifId,
         userId: recipientId,
-        title: '📊 Actualización de Intercambio',
-        body: `${currentUser.name} ${status === 'accepted' ? 'ha aceptado' : status === 'declined' ? 'ha rechazado' : 'ha cancelado'} el intercambio.`,
+        title: '📊 Novedades del canje',
+        body: `${currentUser.name} ${status === 'accepted' ? 'aceptó' : status === 'declined' ? 'rechazó' : 'canceló'} el canje.`,
         type: 'trade_update',
         tradeId,
         read: false,

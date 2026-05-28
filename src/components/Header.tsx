@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { Bell, User, LogOut, Loader2, Sparkles, Check, Trash2, MapPin } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
@@ -24,8 +24,34 @@ export const Header: React.FC = () => {
   const [profileOpen, setProfileOpen] = useState(false);
   const [locInput, setLocInput] = useState(currentUser?.location || '');
   const [isUpdatingLoc, setIsUpdatingLoc] = useState(false);
+  const notifButtonRef = useRef<HTMLButtonElement>(null);
+  const profileButtonRef = useRef<HTMLButtonElement>(null);
+  const notifPanelRef = useRef<HTMLDivElement>(null);
+  const profilePanelRef = useRef<HTMLDivElement>(null);
+  const prevNotifOpen = useRef(false);
+  const prevProfileOpen = useRef(false);
 
   const unreadNotifs = notifications.filter(n => !n.read);
+
+  useEffect(() => {
+    if (notifOpen && !prevNotifOpen.current) {
+      notifPanelRef.current?.focus();
+    }
+    if (!notifOpen && prevNotifOpen.current) {
+      notifButtonRef.current?.focus();
+    }
+    prevNotifOpen.current = notifOpen;
+  }, [notifOpen]);
+
+  useEffect(() => {
+    if (profileOpen && !prevProfileOpen.current) {
+      profilePanelRef.current?.focus();
+    }
+    if (!profileOpen && prevProfileOpen.current) {
+      profileButtonRef.current?.focus();
+    }
+    prevProfileOpen.current = profileOpen;
+  }, [profileOpen]);
 
   const handleUpdateLoc = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,16 +66,12 @@ export const Header: React.FC = () => {
       <div className="max-w-md mx-auto flex items-center justify-between">
         
         {/* Title Brand */}
-        <div className="flex items-center gap-2">
-          <div className="w-10 h-10 bg-sky-600 rounded-xl flex items-center justify-center text-white font-extrabold text-lg shadow-lg shadow-sky-200">
-            26
-          </div>
-          <div>
-            <h1 className="text-sm font-black text-slate-900 tracking-tight leading-none uppercase">Repe<span className="text-sky-600">Club</span></h1>
-            <span className="text-[9px] font-mono font-bold text-sky-600 bg-sky-50 px-1.5 py-0.5 rounded-full mt-1 inline-block">
-              PANINI MUNDIAL
-            </span>
-          </div>
+        <div className="flex items-center">
+          <img
+            src="/logo-repeclub.svg"
+            alt="Logo de RepeClub"
+            className="w-14 h-14 rounded-2xl shadow-lg shadow-slate-200"
+          />
         </div>
 
         {/* Action Controls */}
@@ -58,6 +80,7 @@ export const Header: React.FC = () => {
           <div className="relative">
             <button
               id="notif_bell_btn"
+              ref={notifButtonRef}
               onClick={() => {
                 setNotifOpen(!notifOpen);
                 setProfileOpen(false);
@@ -65,6 +88,9 @@ export const Header: React.FC = () => {
                   markAllNotificationsAsRead();
                 }
               }}
+              aria-label="Abrir notificaciones"
+              aria-expanded={notifOpen}
+              aria-controls="notifications_panel"
               className="p-2 text-gray-600 hover:text-gray-900 bg-gray-50 rounded-xl relative transition-colors focus:outline-none"
             >
               <Bell className="w-5 h-5" />
@@ -79,6 +105,17 @@ export const Header: React.FC = () => {
             <AnimatePresence>
               {notifOpen && (
                 <motion.div
+                  id="notifications_panel"
+                  role="dialog"
+                  aria-modal="false"
+                  aria-label="Panel de notificaciones"
+                  ref={notifPanelRef}
+                  tabIndex={-1}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') {
+                      setNotifOpen(false);
+                    }
+                  }}
                   initial={{ opacity: 0, y: 10, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
@@ -95,7 +132,7 @@ export const Header: React.FC = () => {
                   <div className="max-h-64 overflow-y-auto">
                     {notifications.length === 0 ? (
                       <div className="p-6 text-center text-xs text-gray-400">
-                        No tienes alertas en este momento.
+                        No tenés alertas por ahora.
                       </div>
                     ) : (
                       notifications.slice(0, 10).map((notif) => (
@@ -114,6 +151,7 @@ export const Header: React.FC = () => {
                           </div>
                           <button
                             onClick={() => clearNotification(notif.id)}
+                            aria-label="Eliminar notificación"
                             className="p-1 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -132,10 +170,14 @@ export const Header: React.FC = () => {
             <div className="relative">
               <button
                 id="profile_dropdown_btn"
+                ref={profileButtonRef}
                 onClick={() => {
                   setProfileOpen(!profileOpen);
                   setNotifOpen(false);
                 }}
+                aria-label="Abrir perfil"
+                aria-expanded={profileOpen}
+                aria-controls="profile_panel"
                 className="flex items-center gap-1.5 focus:outline-none"
               >
                 {currentUser.photoURL ? (
@@ -155,6 +197,17 @@ export const Header: React.FC = () => {
               <AnimatePresence>
                 {profileOpen && (
                   <motion.div
+                    id="profile_panel"
+                    role="dialog"
+                    aria-modal="false"
+                    aria-label="Panel de perfil"
+                    ref={profilePanelRef}
+                    tabIndex={-1}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Escape') {
+                        setProfileOpen(false);
+                      }
+                    }}
                     initial={{ opacity: 0, y: 10, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
@@ -172,13 +225,13 @@ export const Header: React.FC = () => {
                       </div>
                       <div className="mt-3 flex items-center gap-1 text-[10px] text-slate-600 bg-white border border-slate-200 rounded-lg px-2 py-1">
                         <MapPin className="w-3 h-3 text-sky-600 flex-shrink-0" />
-                        <span className="truncate">Localidad: <strong>{currentUser.location || 'No asignada'}</strong></span>
+                        <span className="truncate">Zona: <strong>{currentUser.location || 'Sin cargar'}</strong></span>
                       </div>
                     </div>
 
                     {/* Edit Location Form */}
                     <form onSubmit={handleUpdateLoc} className="p-4 border-b border-slate-100">
-                      <label className="text-[10px] font-bold text-slate-500 block mb-1">Crea o Cambia tu Localidad</label>
+                      <label htmlFor="locality_input" className="text-[10px] font-bold text-slate-500 block mb-1">Poné o cambiá tu localidad</label>
                       <div className="flex gap-1">
                         <input
                           id="locality_input"
@@ -192,19 +245,20 @@ export const Header: React.FC = () => {
                         <button
                           type="submit"
                           disabled={isUpdatingLoc}
+                          aria-label="Guardar zona"
                           className="bg-sky-600 hover:bg-sky-700 active:scale-95 text-white p-2 rounded-xl transition-all"
                         >
                           <Check className="w-4 h-4" />
                         </button>
                       </div>
-                      <p className="text-[9px] text-slate-400 mt-1">Ayuda a tus vecinos a encontrarte para tradear.</p>
+                      <p className="text-[9px] text-slate-400 mt-1">Esto ayuda a que te encuentren más fácil para canjear.</p>
                     </form>
 
                     {/* App Sync Banner */}
                     {isDemoMode && (
                       <div className="p-3 bg-blue-50/50 mx-3 mt-3 rounded-xl border border-blue-100/50 text-center">
                         <p className="text-[9px] font-semibold text-blue-950 leading-tight">
-                          ⭐️ Estás en modo local. Conéctate con Firebase para auto-sincronizar y tradear con vecinos.
+                          ⭐️ Estás en modo local. Conectate con Firebase para sincronizar todo y canjear con gente cerca.
                         </p>
                       </div>
                     )}
@@ -212,10 +266,11 @@ export const Header: React.FC = () => {
                     <div className="p-3 bg-slate-105 flex gap-2">
                       <button
                         onClick={signOut}
+                        aria-label="Cerrar sesión"
                         className="w-full py-2 bg-white border border-slate-200 rounded-xl text-[11px] font-bold text-red-500 hover:bg-red-50 hover:border-red-100 transition-colors flex items-center justify-center gap-1.5"
                       >
                         <LogOut className="w-3.5 h-3.5" />
-                        Logout
+                        Cerrar sesión
                       </button>
                     </div>
                   </motion.div>
@@ -225,10 +280,11 @@ export const Header: React.FC = () => {
           ) : (
             <button
               onClick={signIn}
+              aria-label="Entrar con Google"
               className="px-4 py-2 bg-gradient-to-r from-sky-600 to-sky-500 text-white font-bold text-xs rounded-xl shadow-md shadow-sky-200 transition-all hover:brightness-105 active:scale-95 flex items-center gap-1.5"
             >
               <User className="w-4 h-4" />
-              Ingresar
+              Entrar
             </button>
           )}
         </div>

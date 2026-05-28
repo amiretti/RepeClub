@@ -123,16 +123,18 @@ export const MatchMaker: React.FC = () => {
     const offeredSubset = offered.slice(0, 5);
     const requestedSubset = requested.slice(0, 5);
     await createTradeOffer(userId, offeredSubset, requestedSubset);
-    alert('🎯 ¡Propuesta enviada con éxito! Tu amigo recibirá una notificación para aceptar el canje.');
+    alert('🎯 ¡Listo! Mandamos la propuesta de canje. Ahora queda esperar que te la acepten.');
   };
 
   return (
-    <div className="space-y-4 max-w-md mx-auto px-4 pb-20">
+    <section aria-labelledby="matchmaker-title" className="space-y-4 max-w-md mx-auto px-4 pb-20">
+      <h2 id="matchmaker-title" className="sr-only">Canjes y propuestas</h2>
       
       {/* Tab select buttons */}
       <div className="flex bg-slate-100 p-1 rounded-2xl border border-slate-200">
         <button
           onClick={() => setActiveTab('match')}
+          aria-pressed={activeTab === 'match'}
           className={`flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl text-xs font-bold transition-all ${
             activeTab === 'match'
               ? 'bg-white shadow-xs text-slate-900'
@@ -140,10 +142,11 @@ export const MatchMaker: React.FC = () => {
           }`}
         >
           <Handshake className="w-4 h-4 text-sky-500" />
-          Encontrar Canjes
+          Buscar canjes
         </button>
         <button
           onClick={() => setActiveTab('trades')}
+          aria-pressed={activeTab === 'trades'}
           className={`flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl text-xs font-bold transition-all relative ${
             activeTab === 'trades'
               ? 'bg-white shadow-xs text-slate-900'
@@ -166,14 +169,14 @@ export const MatchMaker: React.FC = () => {
           <div className="bg-sky-50 border border-sky-100 p-4 rounded-[1.5rem] flex items-start gap-2.5 text-xs text-sky-950 leading-normal">
             <AlertCircle className="w-4.5 h-4.5 text-sky-600 flex-shrink-0 mt-0.5" />
             <p className="font-semibold text-sky-900">
-              Comparamos automáticamente tus <strong>faltantes</strong> y <strong>repetidas</strong> con los coleccionistas de tu ciudad. ¡Donde veas <span className="bg-sky-100 px-2 py-0.5 rounded-full text-[9px] font-extrabold text-sky-800">Súper Canje</span>, haz canje directo!
+              Cruzamos tus <strong>faltantes</strong> y <strong>repetidas</strong> con gente de tu zona. Donde veas <span className="bg-sky-100 px-2 py-0.5 rounded-full text-[9px] font-extrabold text-sky-800">Súper Canje</span>, metele canje directo.
             </p>
           </div>
 
           {/* Search boxes */}
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="text-[10px] font-black text-slate-400 block mb-1 uppercase tracking-wider">Buscar Figu</label>
+              <label htmlFor="search_figu_input" className="text-[10px] font-black text-slate-400 block mb-1 uppercase tracking-wider">Buscar Figu</label>
               <div className="relative">
                 <Search className="absolute left-3 top-2.5 w-3.5 h-3.5 text-slate-400" />
                 <input
@@ -188,7 +191,7 @@ export const MatchMaker: React.FC = () => {
             </div>
 
             <div>
-              <label className="text-[10px] font-black text-slate-400 block mb-1 uppercase tracking-wider">Localidad</label>
+              <label htmlFor="search_loc_input" className="text-[10px] font-black text-slate-400 block mb-1 uppercase tracking-wider">Zona</label>
               <div className="relative">
                 <MapPin className="absolute left-3 top-2.5 w-3.5 h-3.5 text-slate-400" />
                 <input
@@ -207,7 +210,7 @@ export const MatchMaker: React.FC = () => {
           <div className="space-y-3">
             {filteredMatchesByFigure.length === 0 ? (
               <div className="py-12 bg-white border border-dashed border-slate-200 rounded-3xl text-center text-sm text-slate-400 px-4">
-                🧩 No encontramos coincidencias en este momento. ¡Sigue marcando tu álbum para habilitar compatibilidades!
+                🧩 Todavía no saltaron coincidencias. Seguí cargando tu álbum y van a aparecer.
               </div>
             ) : (
               filteredMatchesByFigure.map((match) => {
@@ -269,13 +272,13 @@ export const MatchMaker: React.FC = () => {
                             </span>
                           )}
                           {match.requested.length === 0 && (
-                            <span className="text-[10px] font-medium text-slate-400 italic">Ninguna</span>
+                            <span className="text-[10px] font-medium text-slate-400 italic">Nada por ahora</span>
                           )}
                         </div>
                       </div>
 
                       <div className="border-l border-slate-150 pl-3">
-                        <span className="text-[9px] font-bold text-slate-400 block uppercase mb-1 tracking-wider">Le puedes dar ({match.offered.length})</span>
+                        <span className="text-[9px] font-bold text-slate-400 block uppercase mb-1 tracking-wider">Le podés dar ({match.offered.length})</span>
                         <div className="flex flex-wrap gap-1 max-h-16 overflow-y-auto">
                           {match.offered.slice(0, 10).map(code => {
                             const name = getStickerNameAndTeam(code).name;
@@ -291,7 +294,7 @@ export const MatchMaker: React.FC = () => {
                             </span>
                           )}
                           {match.offered.length === 0 && (
-                            <span className="text-[10px] font-medium text-slate-400 italic">Ninguna</span>
+                            <span className="text-[10px] font-medium text-slate-400 italic">Nada por ahora</span>
                           )}
                         </div>
                       </div>
@@ -308,7 +311,7 @@ export const MatchMaker: React.FC = () => {
                         }`}
                       >
                         <Send className="w-3.5 h-3.5" />
-                        Proponer Canje Automático
+                        Mandar canje automático
                       </button>
                     </div>
 
@@ -323,26 +326,26 @@ export const MatchMaker: React.FC = () => {
         <div className="space-y-3">
           {trades.length === 0 ? (
             <div className="py-12 bg-white border border-dashed border-slate-200 rounded-3xl text-center text-sm text-slate-400">
-              📊 No has enviado ni recibido propuestas de intercambio aún.
+              📊 Todavía no mandaste ni recibiste propuestas de canje.
             </div>
           ) : (
             trades.map((trade) => {
               const isSender = trade.senderId === currentUser?.uid;
-              const roleLabel = isSender ? 'Tú dejas' : `${trade.senderName} te deja`;
-              const askLabel = isSender ? `${trade.receiverName} te da` : 'Tú le das';
+              const roleLabel = isSender ? 'Vos ofrecés' : `${trade.senderName} ofrece`;
+              const askLabel = isSender ? `${trade.receiverName} te da` : 'Vos le das';
               
               // status styles
               let statusColor = 'bg-slate-100 text-slate-600 border border-slate-200';
               let statusText = 'Pendiente';
               if (trade.status === 'accepted') {
                 statusColor = 'bg-blue-50 text-blue-850 border border-blue-200';
-                statusText = 'Aceptado (¡Sincronizado!)';
+                statusText = 'Aceptado (¡ya se sincronizó!)';
               } else if (trade.status === 'declined') {
                 statusColor = 'bg-red-50 text-red-700 border border-red-150';
-                statusText = 'Rechazado';
+                statusText = 'No aceptado';
               } else if (trade.status === 'cancelled') {
                 statusColor = 'bg-yellow-50 text-yellow-700 border border-yellow-150';
-                statusText = 'Cancelado';
+                statusText = 'Se canceló';
               }
 
               return (
@@ -403,10 +406,11 @@ export const MatchMaker: React.FC = () => {
                             className="flex-1 bg-sky-600 hover:bg-sky-700 text-white font-black text-xs py-2.5 rounded-xl transition-all shadow-md shadow-sky-100 flex items-center justify-center gap-1.5 active:scale-95"
                           >
                             <Check className="w-4 h-4 text-white stroke-[3px]" />
-                            Aceptar Canje
+                            Aceptar canje
                           </button>
                           <button
                             onClick={() => updateTradeStatus(trade.id, 'declined')}
+                            aria-label="Rechazar canje"
                             className="px-3 bg-sky-50 hover:bg-sky-100 text-sky-600 border border-sky-100 font-bold text-xs py-2.5 rounded-xl transition-all flex items-center justify-center"
                           >
                             <X className="w-4 h-4" />
@@ -418,7 +422,7 @@ export const MatchMaker: React.FC = () => {
                           className="w-full bg-slate-50 hover:bg-slate-100 text-slate-500 font-black text-xs py-2.5 rounded-xl border border-slate-200 transition-all flex items-center justify-center gap-1"
                         >
                           <X className="w-4 h-4" />
-                          Cancelar Propuesta
+                          Cancelar propuesta
                         </button>
                       )}
                     </div>
@@ -428,7 +432,7 @@ export const MatchMaker: React.FC = () => {
                   {trade.status === 'accepted' && (
                     <div className="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-2xl">
                       <p className="text-[10px] text-blue-800 font-semibold leading-normal text-center">
-                        🎉 <strong>¡Canje Sincronizado en tu Álbum!</strong> Ya hemos intercambiado las figuritas en tu inventario digital. ¡Ahora júntense para darlas coleccionadas físicas!
+                        🎉 <strong>¡Canje sincronizado en tu álbum!</strong> Las figus ya se actualizaron en tu inventario. Ahora solo queda juntarse y cambiarlas en persona.
                       </p>
                     </div>
                   )}
@@ -440,6 +444,6 @@ export const MatchMaker: React.FC = () => {
         </div>
       )}
 
-    </div>
+    </section>
   );
 };

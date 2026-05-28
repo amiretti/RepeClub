@@ -81,7 +81,7 @@ export const db = firestoreInstance;
 export const auth = authInstance;
 export const isFirebaseConfigured = isConfigured;
 
-export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null): never {
+export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null): void {
   const errInfo: FirestoreErrorInfo = {
     error: error instanceof Error ? error.message : String(error),
     authInfo: {
@@ -100,7 +100,13 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
   };
   
   console.error('Firestore Error details:', JSON.stringify(errInfo));
-  throw new Error(JSON.stringify(errInfo));
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('app-error', {
+      detail: {
+        message: 'No pudimos sincronizar con Firebase. Fijate tu conexión e intentá de nuevo.'
+      }
+    }));
+  }
 }
 
 // Connection test

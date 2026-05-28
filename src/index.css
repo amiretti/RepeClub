@@ -1,1 +1,39 @@
 @import "tailwindcss";
+
+:focus-visible {
+	outline: 3px solid #0ea5e9;
+	outline-offset: 2px;
+}
+
+@keyframes heartbeat {
+	0%,
+	100% {
+		transform: scale(1);
+	}
+	20% {
+		transform: scale(1.16);
+	}
+	35% {
+		transform: scale(1.02);
+	}
+	50% {
+		transform: scale(1.12);
+	}
+}
+
+.heartbeat {
+	display: inline-block;
+	animation: heartbeat 1.2s ease-in-out infinite;
+	transform-origin: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
+}
