@@ -14,6 +14,7 @@ interface NotificationsPanelProps {
   notifications: AppNotification[];
   onClose: () => void;
   onClearNotification: (id: string) => Promise<void>;
+  panelClassName?: string;
 }
 
 export const NotificationsPanel: React.FC<NotificationsPanelProps> = ({
@@ -21,7 +22,8 @@ export const NotificationsPanel: React.FC<NotificationsPanelProps> = ({
   panelRef,
   notifications,
   onClose,
-  onClearNotification
+  onClearNotification,
+  panelClassName
 }) => {
   return (
     <AnimatePresence>
@@ -41,7 +43,7 @@ export const NotificationsPanel: React.FC<NotificationsPanelProps> = ({
           initial={{ opacity: 0, y: 10, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 10, scale: 0.95 }}
-          className="absolute right-0 mt-2 w-80 bg-white rounded-2xl border border-gray-100 shadow-xl overflow-hidden py-2"
+          className={panelClassName ?? "absolute right-0 mt-2 w-80 bg-white rounded-2xl border border-gray-100 shadow-xl overflow-hidden py-2"}
         >
           <div className="px-4 py-2 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
             <span className="text-xs font-bold text-gray-800">Notificaciones ⚡</span>

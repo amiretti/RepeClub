@@ -37,7 +37,7 @@ export const MatchMaker: React.FC = () => {
   const { proposeAutoTrade } = useTradeActions({ createTradeOffer });
 
   return (
-    <section aria-labelledby="matchmaker-title" className="space-y-4 max-w-md mx-auto px-4 pb-20">
+    <section aria-labelledby="matchmaker-title" className="space-y-4 w-full px-4 pb-6">
       <h2 id="matchmaker-title" className="sr-only">Canjes y propuestas</h2>
       
       {/* Tab select buttons */}

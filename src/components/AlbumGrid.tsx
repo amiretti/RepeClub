@@ -110,7 +110,7 @@ export const AlbumGrid: React.FC = () => {
   };
 
   return (
-    <section aria-labelledby="album-grid-title" className="space-y-4 max-w-md mx-auto px-4 pb-20">
+    <section aria-labelledby="album-grid-title" className="space-y-4 w-full px-4 lg:px-6 pb-8">
       <h2 id="album-grid-title" className="sr-only">Colección de figuritas</h2>
       
       {/* 1. Progress dashboard card (Bento Grid design) */}
@@ -252,7 +252,7 @@ export const AlbumGrid: React.FC = () => {
             🔍 No hay figus acá con ese filtro. Probá otro y sale.
           </div>
         ) : (
-          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5">
+          <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-2.5">
             {filteredStickers.map((code) => {
               const count = inventory[code] || 0;
               const hasIt = count >= 1;
