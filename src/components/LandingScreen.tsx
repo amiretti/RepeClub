@@ -61,12 +61,13 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({ signIn, authInProg
         <p id="onboarding_legal_desc" className="text-[10px] text-center text-slate-400 max-w-xs mx-auto">
           Hecho con pasión y <span className="heartbeat" aria-hidden="true">🩵</span> por{' '}
           <a
-            href="https://harvi.digital"
+            href="https://github.com/amiretti"
             target="_blank"
             rel="noopener noreferrer"
-            className="font-semibold text-sky-600 hover:text-sky-700 underline decoration-sky-300 underline-offset-2"
+            className="font-semibold underline decoration-sky-300 underline-offset-2"
           >
-            Harvi
+            <span className="text-sky-600">CUERVO</span>
+            <span className="text-red-500">DEV</span>
           </a>
           .
         </p>

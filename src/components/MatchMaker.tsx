@@ -11,6 +11,7 @@ import { MatchFilters } from './matchmaker/MatchFilters';
 import { MatchCard } from './matchmaker/MatchCard';
 import { TradeCard } from './matchmaker/TradeCard';
 import { useMatchmaking } from '../hooks/useMatchmaking';
+import { useTradeActions } from '../hooks/useTradeActions';
 
 export const MatchMaker: React.FC = () => {
   const {
@@ -33,15 +34,7 @@ export const MatchMaker: React.FC = () => {
     locationFilter,
     searchFiguCode
   });
-
-  // 3. Send automatic swap request
-  const handleProposeTrade = async (userId: string, offered: string[], requested: string[]) => {
-    // Select automatically up to 5 recommended stickers to offer and ask for clean kids interface
-    const offeredSubset = offered.slice(0, 5);
-    const requestedSubset = requested.slice(0, 5);
-    await createTradeOffer(userId, offeredSubset, requestedSubset);
-    alert('🎯 ¡Listo! Mandamos la propuesta de canje. Ahora queda esperar que te la acepten.');
-  };
+  const { proposeAutoTrade } = useTradeActions({ createTradeOffer });
 
   return (
     <section aria-labelledby="matchmaker-title" className="space-y-4 max-w-md mx-auto px-4 pb-20">
@@ -77,14 +70,14 @@ export const MatchMaker: React.FC = () => {
           <div className="space-y-3">
             {filteredMatchesByFigure.length === 0 ? (
               <div className="py-12 bg-white border border-dashed border-slate-200 rounded-3xl text-center text-sm text-slate-400 px-4">
-                🧩 Aun no hay coincidencias reales para mostrar. Cargá más figus y volvé a probar cuando haya más coleccionistas en línea.
+                🧩 Todavía no hay coincidencias para mostrar. Cargá más figus y volvé a probar cuando haya más coleccionistas en línea.
               </div>
             ) : (
               filteredMatchesByFigure.map((match) => (
                 <MatchCard
                   key={match.profile.uid}
                   match={match}
-                  onProposeTrade={handleProposeTrade}
+                  onProposeTrade={proposeAutoTrade}
                 />
               ))
             )}
