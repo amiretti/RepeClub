@@ -4,6 +4,7 @@
  */
 
 import { Loader2 } from 'lucide-react';
+import { FlagIcon } from './FlagIcon';
 
 interface LandingScreenProps {
   signIn: () => Promise<void>;
@@ -83,15 +84,15 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({ signIn, authInProg
         </h2>
         <div className="flex gap-2 mt-3">
           <div className="bg-white/10 flex-1 p-2 rounded-2xl text-center border border-white/15">
-            <span className="text-base block">🇲🇽</span>
+            <FlagIcon emoji="🇲🇽" label="México" className="w-6 h-6" />
             <span className="text-[10px] font-mono font-extrabold text-blue-200">MEX10</span>
           </div>
           <div className="bg-white/10 flex-1 p-2 rounded-2xl text-center border border-white/15">
-            <span className="text-base block">🇦🇷</span>
+            <FlagIcon emoji="🇦🇷" label="Argentina" className="w-6 h-6" />
             <span className="text-[10px] font-mono font-extrabold text-blue-200">ARG10</span>
           </div>
           <div className="bg-sky-600 flex-1 p-2 rounded-2xl text-center border border-sky-500">
-            <span className="text-base block">🇧🇷</span>
+            <FlagIcon emoji="🇧🇷" label="Brasil" className="w-6 h-6" />
             <span className="text-[10px] font-mono font-extrabold text-white">BRA10</span>
           </div>
         </div>
