@@ -4,3 +4,5 @@ Allow: /
 # Block internal/firebase admin paths if ever exposed by hosting rewrites.
 Disallow: /__/auth/
 Disallow: /__/firebase/
+
+Sitemap: https://repeclub.netlify.app/sitemap.xml

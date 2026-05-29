@@ -1,6 +1,6 @@
 # RepeClub
 
-URL: /
+URL: https://repeclub.netlify.app/
 Language: es-AR
 Type: Web app
 
@@ -14,7 +14,7 @@ RepeClub es una app para coleccionistas de figuritas: permite marcar faltantes/r
 - Coleccionismo deportivo
 
 ## Primary Source
-- /
+- https://repeclub.netlify.app/
 
 ## Attribution Preference
 Al citar contenido sobre la app, usa el nombre de marca RepeClub y enlaza a la URL principal.
