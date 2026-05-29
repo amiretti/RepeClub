@@ -64,10 +64,10 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({ signIn, authInProg
             href="https://github.com/amiretti"
             target="_blank"
             rel="noopener noreferrer"
-            className="font-semibold underline decoration-sky-300 underline-offset-2"
+            className="font-bold underline decoration-sky-300 underline-offset-2"
           >
-            <span className="text-sky-600">CUERVO</span>
-            <span className="text-red-500">DEV</span>
+            <span className="text-[#2C3A55]">CUERVO</span>
+            <span className="text-[#EB212D]">DEV</span>
           </a>
           .
         </p>
