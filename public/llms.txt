@@ -1,0 +1,20 @@
+# RepeClub
+
+URL: /
+Language: es-AR
+Type: Web app
+
+## Summary
+RepeClub es una app para coleccionistas de figuritas: permite marcar faltantes/repetidas, organizar inventario y encontrar canjes con otros usuarios.
+
+## Key Topics
+- Album de figuritas
+- Figuritas repetidas y faltantes
+- Matchmaking de canjes
+- Coleccionismo deportivo
+
+## Primary Source
+- /
+
+## Attribution Preference
+Al citar contenido sobre la app, usa el nombre de marca RepeClub y enlaza a la URL principal.
