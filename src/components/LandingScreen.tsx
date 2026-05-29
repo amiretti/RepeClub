@@ -58,7 +58,36 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({ signIn, authInProg
             </>
           )}
         </button>
+      </div>
 
+      <div id="onboarding_packet_card" className="my-1 p-4 bg-gradient-to-br from-blue-900 via-blue-950 to-slate-900 rounded-[1.75rem] shadow-2xl relative border-4 border-white overflow-hidden transform hover:-rotate-1 transition-transform">
+        <div className="absolute top-0 right-0 bg-sky-600 text-white font-black text-[9px] px-3 py-1 rounded-bl-2xl uppercase tracking-wider shadow-sm">
+          PREMIUM
+        </div>
+        <p className="text-[11px] font-extrabold text-blue-200 uppercase tracking-widest mt-1 leading-none">RepeClub 2026</p>
+        <h2 className="text-lg font-black text-white tracking-tight mt-2">
+          ¡Llená tu álbum!
+        </h2>
+        <div className="flex gap-2 mt-3">
+          <div className="bg-white/10 flex-1 p-2 rounded-2xl text-center border border-white/15 flex flex-col items-center">
+            <FlagIcon emoji="🇲🇽" label="México" className="w-6 h-6 mb-1" />
+            <span className="text-[10px] font-mono font-extrabold text-blue-200">MEX10</span>
+          </div>
+          <div className="bg-sky-600 flex-1 p-2 rounded-2xl text-center border border-sky-500 flex flex-col items-center">
+            <FlagIcon emoji="🇦🇷" label="Argentina" className="w-6 h-6 mb-1" />
+            <span className="text-[10px] font-mono font-extrabold text-white">ARG10</span>
+          </div>
+          <div className="bg-white/10 flex-1 p-2 rounded-2xl text-center border border-white/15 flex flex-col items-center">
+            <FlagIcon emoji="🇧🇷" label="Brasil" className="w-6 h-6 mb-1" />
+            <span className="text-[10px] font-mono font-extrabold text-blue-200">BRA10</span>
+          </div>
+        </div>
+        <p className="text-[9px] text-blue-200/80 font-semibold mt-3 text-center">
+          🚀 Con tecnología de auto-coincidencia inteligente de canjes
+        </p>
+      </div>
+
+      <footer className="mt-auto">
         <p id="onboarding_legal_desc" className="text-[10px] text-center text-slate-400 max-w-xs mx-auto">
           Hecho con pasión y <span className="heartbeat" aria-hidden="true">🩵</span> por{' '}
           <a
@@ -72,34 +101,7 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({ signIn, authInProg
           </a>
           .
         </p>
-      </div>
-
-      <div id="onboarding_packet_card" className="my-1 p-4 bg-gradient-to-br from-blue-900 via-blue-950 to-slate-900 rounded-[1.75rem] shadow-2xl relative border-4 border-white overflow-hidden transform hover:-rotate-1 transition-transform">
-        <div className="absolute top-0 right-0 bg-sky-600 text-white font-black text-[9px] px-3 py-1 rounded-bl-2xl uppercase tracking-wider shadow-sm">
-          PREMIUM
-        </div>
-        <p className="text-[11px] font-extrabold text-blue-200 uppercase tracking-widest mt-1 leading-none">RepeClub 2026</p>
-        <h2 className="text-lg font-black text-white tracking-tight mt-2">
-          ¡Llená tu álbum!
-        </h2>
-        <div className="flex gap-2 mt-3">
-          <div className="bg-white/10 flex-1 p-2 rounded-2xl text-center border border-white/15">
-            <FlagIcon emoji="🇲🇽" label="México" className="w-6 h-6" />
-            <span className="text-[10px] font-mono font-extrabold text-blue-200">MEX10</span>
-          </div>
-          <div className="bg-white/10 flex-1 p-2 rounded-2xl text-center border border-white/15">
-            <FlagIcon emoji="🇦🇷" label="Argentina" className="w-6 h-6" />
-            <span className="text-[10px] font-mono font-extrabold text-blue-200">ARG10</span>
-          </div>
-          <div className="bg-sky-600 flex-1 p-2 rounded-2xl text-center border border-sky-500">
-            <FlagIcon emoji="🇧🇷" label="Brasil" className="w-6 h-6" />
-            <span className="text-[10px] font-mono font-extrabold text-white">BRA10</span>
-          </div>
-        </div>
-        <p className="text-[9px] text-blue-200/80 font-semibold mt-3 text-center">
-          🚀 Con tecnología de auto-coincidencia inteligente de canjes
-        </p>
-      </div>
+      </footer>
     </main>
   );
 };
