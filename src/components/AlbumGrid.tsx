@@ -191,6 +191,8 @@ export const AlbumGrid: React.FC = () => {
   };
 
   const handleOpenWhatsApp = (type: 'duplicates' | 'missing') => {
+    setWaStatus('idle');
+
     const reportText = type === 'duplicates'
       ? (duplicateReportLines.length === 0
         ? 'No tenes figus repetidas para reportar por pais.'
@@ -202,16 +204,7 @@ export const AlbumGrid: React.FC = () => {
     const baseUrl = 'https://api.whatsapp.com/send?text=';
     const whatsappUrl = `${baseUrl}${encodeURIComponent(reportText)}`;
 
-    const openedWindow = window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
-
-    if (!openedWindow) {
-      setWaStatus('blocked');
-      return;
-    }
-
-    setWaStatus('opened');
-
-    window.setTimeout(() => setWaStatus('idle'), 2200);
+    window.location.assign(whatsappUrl);
   };
 
   return (
