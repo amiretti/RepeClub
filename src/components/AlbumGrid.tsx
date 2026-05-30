@@ -7,9 +7,33 @@ import React, { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import { SPECIALS, TEAMS, getStickersForGroup, TOTAL_STICKER_COUNT } from '../catalog';
 import { getStickerNameAndTeam } from '../stickerData';
-import { Check, Plus, Minus, Search, Sparkles, Filter, Trophy } from 'lucide-react';
+import { Check, Minus, Search } from 'lucide-react';
 import { motion } from 'motion/react';
 import { FlagIcon } from './FlagIcon';
+
+const REGIONAL_INDICATOR_START = 0x1f1e6;
+const REGIONAL_INDICATOR_END = 0x1f1ff;
+
+const WA_FLAG_FALLBACK_BY_TEAM_CODE: Record<string, string> = {
+  ENG: '🇬🇧',
+  SCO: '🇬🇧'
+};
+
+const isRegionalIndicatorFlag = (emoji: string): boolean => {
+  const codePoints = Array.from(emoji).map((char) => char.codePointAt(0) || 0);
+  return (
+    codePoints.length === 2 &&
+    codePoints.every((cp) => cp >= REGIONAL_INDICATOR_START && cp <= REGIONAL_INDICATOR_END)
+  );
+};
+
+const WhatsAppIcon: React.FC<{ className?: string }> = ({ className = 'w-3 h-3' }) => {
+  return (
+    <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" className={className}>
+      <path d="M13.601 2.326A7.854 7.854 0 0 0 8.01 0C3.701 0 .193 3.498.193 7.8c0 1.375.359 2.717 1.04 3.904L0 16l4.41-1.229a7.83 7.83 0 0 0 3.6.868h.003c4.308 0 7.816-3.499 7.816-7.8a7.75 7.75 0 0 0-2.228-5.513zm-5.59 11.997h-.002a6.53 6.53 0 0 1-3.33-.91l-.24-.143-2.615.728.698-2.545-.156-.262a6.47 6.47 0 0 1-.995-3.44c.001-3.57 2.92-6.475 6.512-6.475 1.74.001 3.375.674 4.604 1.897a6.42 6.42 0 0 1 1.908 4.58c-.001 3.57-2.922 6.47-6.515 6.47zm3.572-4.878c-.196-.098-1.163-.573-1.343-.638-.18-.065-.311-.098-.442.098-.13.196-.507.638-.622.769-.114.13-.229.147-.425.049-.196-.098-.827-.302-1.576-.964-.583-.517-.977-1.154-1.092-1.35-.114-.196-.012-.302.086-.4.088-.088.196-.228.294-.343a1.33 1.33 0 0 0 .196-.327c.065-.13.033-.245-.016-.343-.049-.098-.442-1.06-.605-1.452-.159-.38-.32-.329-.442-.335a7.77 7.77 0 0 0-.376-.007c-.13 0-.343.049-.523.245-.18.196-.687.67-.687 1.633 0 .964.704 1.896.802 2.027.098.13 1.388 2.112 3.361 2.962.47.203.836.324 1.123.415.472.15.902.129 1.242.078.379-.057 1.163-.475 1.327-.933.163-.458.163-.85.114-.933-.049-.082-.18-.13-.376-.229z" />
+    </svg>
+  );
+};
 
 export const AlbumGrid: React.FC = () => {
   const { inventory, updateStickerCount } = useApp();
@@ -17,6 +41,7 @@ export const AlbumGrid: React.FC = () => {
   const [selectedGroupCode, setSelectedGroupCode] = useState<string>('00');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [filterMode, setFilterMode] = useState<'all' | 'missing' | 'duplicates'>('all');
+  const [waStatus, setWaStatus] = useState<'idle' | 'opened' | 'blocked'>('idle');
 
   // Compute album statistics
   const stats = useMemo(() => {
@@ -35,11 +60,13 @@ export const AlbumGrid: React.FC = () => {
     });
 
     const completionPercent = Math.round((uniqueOwned / TOTAL_STICKER_COUNT) * 100);
+    const missingCount = TOTAL_STICKER_COUNT - uniqueOwned;
 
     return {
       uniqueOwned,
       totalDuplicates,
-      completionPercent
+      completionPercent,
+      missingCount
     };
   }, [inventory]);
 
@@ -51,6 +78,60 @@ export const AlbumGrid: React.FC = () => {
   const activeGroup = useMemo(() => {
     return allGroups.find(g => g.code === selectedGroupCode) || SPECIALS[0];
   }, [allGroups, selectedGroupCode]);
+
+  const teamGroups = useMemo(() => TEAMS.filter((group) => !group.code.includes('-')), []);
+
+  const duplicateReportLines = useMemo(() => {
+    const lines: string[] = [];
+
+    for (const team of teamGroups) {
+      const teamStickers = getStickersForGroup(team);
+      const matchedCodes = teamStickers.filter((code) => {
+        const count = inventory[code] || 0;
+        return count > 1;
+      });
+
+      if (matchedCodes.length === 0) {
+        continue;
+      }
+
+      const waFlag = isRegionalIndicatorFlag(team.flag)
+        ? team.flag
+        : WA_FLAG_FALLBACK_BY_TEAM_CODE[team.code] || '';
+
+      const countryLabel = waFlag || team.code;
+
+      lines.push(`- ${countryLabel}: ${matchedCodes.join(', ')}`);
+    }
+
+    return lines;
+  }, [inventory, teamGroups]);
+
+  const missingReportLines = useMemo(() => {
+    const lines: string[] = [];
+
+    for (const team of teamGroups) {
+      const teamStickers = getStickersForGroup(team);
+      const matchedCodes = teamStickers.filter((code) => {
+        const count = inventory[code] || 0;
+        return count === 0;
+      });
+
+      if (matchedCodes.length === 0) {
+        continue;
+      }
+
+      const waFlag = isRegionalIndicatorFlag(team.flag)
+        ? team.flag
+        : WA_FLAG_FALLBACK_BY_TEAM_CODE[team.code] || '';
+
+      const countryLabel = waFlag || team.code;
+
+      lines.push(`- ${countryLabel}: ${matchedCodes.join(', ')}`);
+    }
+
+    return lines;
+  }, [inventory, teamGroups]);
 
   // Compute list of stickers to display
   const stickersToDisplay = useMemo(() => {
@@ -109,6 +190,30 @@ export const AlbumGrid: React.FC = () => {
     }
   };
 
+  const handleOpenWhatsApp = (type: 'duplicates' | 'missing') => {
+    const reportText = type === 'duplicates'
+      ? (duplicateReportLines.length === 0
+        ? 'No tenes figus repetidas para reportar por pais.'
+        : `Hola! estas son mis figus repetidas, te falta alguna de estas?\n\n${duplicateReportLines.join('\n')}`)
+      : (missingReportLines.length === 0
+        ? 'No hay figus faltantes para reportar por pais. Album completo!'
+        : `Hola! Estas son las figus que me faltan, tenes alguna repe?\n\n${missingReportLines.join('\n')}`);
+
+    const baseUrl = 'https://api.whatsapp.com/send?text=';
+    const whatsappUrl = `${baseUrl}${encodeURIComponent(reportText)}`;
+
+    const openedWindow = window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+
+    if (!openedWindow) {
+      setWaStatus('blocked');
+      return;
+    }
+
+    setWaStatus('opened');
+
+    window.setTimeout(() => setWaStatus('idle'), 2200);
+  };
+
   return (
     <section aria-labelledby="album-grid-title" className="space-y-4 w-full px-4 lg:px-6 pb-8">
       <h2 id="album-grid-title" className="sr-only">Colección de figuritas</h2>
@@ -140,20 +245,45 @@ export const AlbumGrid: React.FC = () => {
           </div>
           <div className="mt-3 flex justify-between text-xs text-blue-200 font-bold">
             <span>{stats.uniqueOwned} / {TOTAL_STICKER_COUNT} figuritas</span>
-            <span>{TOTAL_STICKER_COUNT - stats.uniqueOwned} faltan</span>
+            <span>Pegadas {stats.uniqueOwned}</span>
           </div>
         </div>
 
         {/* Integrated nested cards dashboard */}
         <div className="grid grid-cols-2 gap-3 mt-5">
-          <div className="bg-white/10 rounded-2xl p-3 border border-white/5 flex flex-col justify-between">
-            <span className="text-[9px] text-blue-200 font-bold uppercase tracking-widest block">Diferentes</span>
-            <span className="text-xl font-extrabold text-white block mt-1">{stats.uniqueOwned}</span>
+          <div className="bg-white/10 rounded-2xl p-3 border border-white/5 flex flex-col">
+            <span className="text-[9px] text-blue-200 font-bold uppercase tracking-widest block">Faltantes</span>
+            <div className="mt-1.5 flex items-end justify-between gap-2">
+              <span className="text-xl font-extrabold text-white block">{stats.missingCount}</span>
+              <button
+                onClick={() => handleOpenWhatsApp('missing')}
+                className="inline-flex items-center justify-center p-2 rounded-lg bg-emerald-500 text-white hover:bg-emerald-400 transition-colors"
+                aria-label="Compartir faltantes por WhatsApp"
+                title="Compartir faltantes"
+              >
+                <WhatsAppIcon className="w-4 h-4" />
+              </button>
+            </div>
           </div>
-          <div className="bg-sky-500 rounded-2xl p-3 shadow-md flex flex-col justify-between">
+          <div className="bg-sky-500 rounded-2xl p-3 shadow-md flex flex-col">
             <span className="text-[9px] text-sky-100 font-bold uppercase tracking-widest block">Repetidas</span>
-            <span className="text-xl font-extrabold text-white block mt-1">✨ {stats.totalDuplicates}</span>
+            <div className="mt-1.5 flex items-end justify-between gap-2">
+              <span className="text-xl font-extrabold text-white block">✨ {stats.totalDuplicates}</span>
+              <button
+                onClick={() => handleOpenWhatsApp('duplicates')}
+                className="inline-flex items-center justify-center p-2 rounded-lg bg-emerald-500 text-white hover:bg-emerald-400 transition-colors"
+                aria-label="Compartir repetidas por WhatsApp"
+                title="Compartir repetidas"
+              >
+                <WhatsAppIcon className="w-4 h-4" />
+              </button>
+            </div>
           </div>
+        </div>
+
+        <div className="mt-3 min-h-4">
+          {waStatus === 'opened' && <span className="text-[10px] text-emerald-200 font-bold">WhatsApp abierto con el reporte.</span>}
+          {waStatus === 'blocked' && <span className="text-[10px] text-amber-200 font-bold">El navegador bloqueó la apertura. Probá de nuevo.</span>}
         </div>
       </div>
 
