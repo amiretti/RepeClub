@@ -27,6 +27,12 @@ const isRegionalIndicatorFlag = (emoji: string): boolean => {
   );
 };
 
+interface ReportGroup {
+  code: string;
+  flag: string;
+  stickers: string[];
+}
+
 const WhatsAppIcon: React.FC<{ className?: string }> = ({ className = 'w-3 h-3' }) => {
   return (
     <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" className={className}>
@@ -79,14 +85,42 @@ export const AlbumGrid: React.FC = () => {
     return allGroups.find(g => g.code === selectedGroupCode) || SPECIALS[0];
   }, [allGroups, selectedGroupCode]);
 
-  const teamGroups = useMemo(() => TEAMS.filter((group) => !group.code.includes('-')), []);
+  const reportGroups = useMemo(() => {
+    const fwcGroupA = SPECIALS.find((group) => group.code === 'FWC-A');
+    const fwcGroupB = SPECIALS.find((group) => group.code === 'FWC-B');
+    const ccGroup = SPECIALS.find((group) => group.code === 'CC');
+
+    const fwcStickers = [
+      ...(fwcGroupA ? getStickersForGroup(fwcGroupA) : []),
+      ...(fwcGroupB ? getStickersForGroup(fwcGroupB) : [])
+    ];
+
+    const specialGroups: ReportGroup[] = [];
+
+    if (fwcStickers.length > 0) {
+      specialGroups.push({ code: 'FWC', flag: '⚽', stickers: fwcStickers });
+    }
+
+    if (ccGroup) {
+      specialGroups.push({ code: ccGroup.code, flag: ccGroup.flag, stickers: getStickersForGroup(ccGroup) });
+    }
+
+    const teamReportGroups = TEAMS
+      .filter((group) => !group.code.includes('-'))
+      .map((group) => ({
+        code: group.code,
+        flag: group.flag,
+        stickers: getStickersForGroup(group)
+      }));
+
+    return [...specialGroups, ...teamReportGroups];
+  }, []);
 
   const duplicateReportLines = useMemo(() => {
     const lines: string[] = [];
 
-    for (const team of teamGroups) {
-      const teamStickers = getStickersForGroup(team);
-      const matchedCodes = teamStickers.filter((code) => {
+    for (const group of reportGroups) {
+      const matchedCodes = group.stickers.filter((code) => {
         const count = inventory[code] || 0;
         return count > 1;
       });
@@ -95,24 +129,23 @@ export const AlbumGrid: React.FC = () => {
         continue;
       }
 
-      const waFlag = isRegionalIndicatorFlag(team.flag)
-        ? team.flag
-        : WA_FLAG_FALLBACK_BY_TEAM_CODE[team.code] || '';
+      const waFlag = isRegionalIndicatorFlag(group.flag)
+        ? group.flag
+        : WA_FLAG_FALLBACK_BY_TEAM_CODE[group.code] || group.flag || '';
 
-      const countryLabel = waFlag || team.code;
+      const countryLabel = waFlag || group.code;
 
       lines.push(`- ${countryLabel}: ${matchedCodes.join(', ')}`);
     }
 
     return lines;
-  }, [inventory, teamGroups]);
+  }, [inventory, reportGroups]);
 
   const missingReportLines = useMemo(() => {
     const lines: string[] = [];
 
-    for (const team of teamGroups) {
-      const teamStickers = getStickersForGroup(team);
-      const matchedCodes = teamStickers.filter((code) => {
+    for (const group of reportGroups) {
+      const matchedCodes = group.stickers.filter((code) => {
         const count = inventory[code] || 0;
         return count === 0;
       });
@@ -121,17 +154,17 @@ export const AlbumGrid: React.FC = () => {
         continue;
       }
 
-      const waFlag = isRegionalIndicatorFlag(team.flag)
-        ? team.flag
-        : WA_FLAG_FALLBACK_BY_TEAM_CODE[team.code] || '';
+      const waFlag = isRegionalIndicatorFlag(group.flag)
+        ? group.flag
+        : WA_FLAG_FALLBACK_BY_TEAM_CODE[group.code] || group.flag || '';
 
-      const countryLabel = waFlag || team.code;
+      const countryLabel = waFlag || group.code;
 
       lines.push(`- ${countryLabel}: ${matchedCodes.join(', ')}`);
     }
 
     return lines;
-  }, [inventory, teamGroups]);
+  }, [inventory, reportGroups]);
 
   // Compute list of stickers to display
   const stickersToDisplay = useMemo(() => {
