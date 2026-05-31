@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { MapPin, Send, Sparkles } from 'lucide-react';
+import { MapPin, Send, Sparkles, PencilLine } from 'lucide-react';
 import { motion } from 'motion/react';
 import { getStickerNameAndTeam } from '../../stickerData';
 import { MatchCandidate } from './types';
@@ -11,9 +11,10 @@ import { MatchCandidate } from './types';
 interface MatchCardProps {
   match: MatchCandidate;
   onProposeTrade: (userId: string, offered: string[], requested: string[]) => Promise<void> | void;
+  onOpenManualTrade: (match: MatchCandidate) => void;
 }
 
-export const MatchCard: React.FC<MatchCardProps> = ({ match, onProposeTrade }) => {
+export const MatchCard: React.FC<MatchCardProps> = ({ match, onProposeTrade, onOpenManualTrade }) => {
   return (
     <motion.div
       layout
@@ -95,7 +96,7 @@ export const MatchCard: React.FC<MatchCardProps> = ({ match, onProposeTrade }) =
         </div>
       </div>
 
-      <div className="mt-4">
+      <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
         <button
           onClick={() => onProposeTrade(match.profile.uid, match.offered, match.requested)}
           className={`w-full py-2.5 rounded-[1.25rem] font-black text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs active:scale-95 ${
@@ -105,7 +106,15 @@ export const MatchCard: React.FC<MatchCardProps> = ({ match, onProposeTrade }) =
           }`}
         >
           <Send className="w-3.5 h-3.5" />
-          Mandar canje automático
+          Enviar automático
+        </button>
+
+        <button
+          onClick={() => onOpenManualTrade(match)}
+          className="w-full py-2.5 rounded-[1.25rem] font-black text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs active:scale-95 bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200"
+        >
+          <PencilLine className="w-3.5 h-3.5" />
+          Armar canje
         </button>
       </div>
     </motion.div>

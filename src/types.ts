@@ -26,6 +26,7 @@ export interface TradeOffer {
   receiverName: string;
   offeredStickers: string[]; // Codes of stickers offered
   requestedStickers: string[]; // Codes of stickers requested
+  tradeType?: 'auto' | 'manual';
   status: 'pending' | 'accepted' | 'declined' | 'cancelled';
   createdAt: string;
   updatedAt: string;

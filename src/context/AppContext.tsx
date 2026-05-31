@@ -42,7 +42,7 @@ interface AppContextType {
   signOut: () => Promise<void>;
   updateStickerCount: (code: string, count: number) => Promise<void>;
   updateUserLocation: (location: string) => Promise<void>;
-  createTradeOffer: (receiverId: string, offered: string[], requested: string[]) => Promise<void>;
+  createTradeOffer: (receiverId: string, offered: string[], requested: string[], tradeType?: 'auto' | 'manual') => Promise<void>;
   updateTradeStatus: (tradeId: string, status: 'accepted' | 'declined' | 'cancelled') => Promise<void>;
   clearNotification: (notificationId: string) => Promise<void>;
   markAllNotificationsAsRead: () => Promise<void>;
@@ -416,7 +416,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // CREATE TRADE OFFER
-  const createTradeOffer = async (receiverId: string, offered: string[], requested: string[]) => {
+  const createTradeOffer = async (
+    receiverId: string,
+    offered: string[],
+    requested: string[],
+    tradeType: 'auto' | 'manual' = 'auto'
+  ) => {
     if (!currentUser) return;
     
     const tradeId = isDemoMode 
@@ -433,6 +438,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       receiverName,
       offeredStickers: offered,
       requestedStickers: requested,
+      tradeType,
       status: 'pending',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()

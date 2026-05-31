@@ -15,6 +15,7 @@ interface TradeCardProps {
 
 export const TradeCard: React.FC<TradeCardProps> = ({ trade, currentUserId, onUpdateTradeStatus }) => {
   const isSender = trade.senderId === currentUserId;
+  const tradeKind = trade.tradeType ?? 'auto';
   const roleLabel = isSender ? 'Vos ofrecés' : `${trade.senderName} ofrece`;
   const askLabel = isSender ? `${trade.receiverName} te da` : 'Vos le das';
 
@@ -39,6 +40,13 @@ export const TradeCard: React.FC<TradeCardProps> = ({ trade, currentUserId, onUp
           <p className="font-extrabold text-slate-850 text-xs mt-1">
             {isSender ? trade.receiverName : trade.senderName}
           </p>
+          <span className={`mt-1 inline-flex text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider ${
+            tradeKind === 'manual'
+              ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
+              : 'bg-cyan-100 text-cyan-700 border border-cyan-200'
+          }`}>
+            {tradeKind === 'manual' ? 'Personalizado' : 'Automático'}
+          </span>
         </div>
         <span className={`text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider ${statusColor}`}>
           {statusText}

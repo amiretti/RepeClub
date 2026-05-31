@@ -3,15 +3,17 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { AlertCircle } from 'lucide-react';
 import { MatchTabs } from './matchmaker/MatchTabs';
 import { MatchFilters } from './matchmaker/MatchFilters';
 import { MatchCard } from './matchmaker/MatchCard';
 import { TradeCard } from './matchmaker/TradeCard';
+import { ManualTradeModal } from './matchmaker/ManualTradeModal';
 import { useMatchmaking } from '../hooks/useMatchmaking';
 import { useTradeActions } from '../hooks/useTradeActions';
+import { MatchCandidate } from './matchmaker/types';
 
 export const MatchMaker: React.FC = () => {
   const {
@@ -26,6 +28,28 @@ export const MatchMaker: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'match' | 'trades'>('match');
   const [searchFiguCode, setSearchFiguCode] = useState('');
   const [locationFilter, setLocationFilter] = useState('');
+  const [manualTradeMatch, setManualTradeMatch] = useState<MatchCandidate | null>(null);
+  const [tradeFeedback, setTradeFeedback] = useState<string | null>(null);
+  const feedbackTimeoutRef = useRef<number | null>(null);
+
+  const showTradeFeedback = (message: string) => {
+    setTradeFeedback(message);
+    if (feedbackTimeoutRef.current) {
+      window.clearTimeout(feedbackTimeoutRef.current);
+    }
+    feedbackTimeoutRef.current = window.setTimeout(() => {
+      setTradeFeedback(null);
+      feedbackTimeoutRef.current = null;
+    }, 3500);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (feedbackTimeoutRef.current) {
+        window.clearTimeout(feedbackTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const filteredMatchesByFigure = useMatchmaking({
     currentUser,
@@ -34,11 +58,31 @@ export const MatchMaker: React.FC = () => {
     locationFilter,
     searchFiguCode
   });
-  const { proposeAutoTrade } = useTradeActions({ createTradeOffer });
+  const { proposeAutoTrade } = useTradeActions({
+    createTradeOffer,
+    onAutoTradeSent: () => {
+      showTradeFeedback('🎯 Canje automático enviado. Ahora queda esperar respuesta.');
+    }
+  });
+
+  const handleSubmitManualTrade = async (receiverId: string, offered: string[], requested: string[]) => {
+    await createTradeOffer(receiverId, offered, requested, 'manual');
+    showTradeFeedback('🧠 Canje personalizado enviado. Ahora queda esperar respuesta.');
+  };
 
   return (
     <section aria-labelledby="matchmaker-title" className="space-y-4 w-full px-4 pb-6">
       <h2 id="matchmaker-title" className="sr-only">Canjes y propuestas</h2>
+
+      {tradeFeedback && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="rounded-2xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-[11px] font-semibold text-emerald-800"
+        >
+          {tradeFeedback}
+        </div>
+      )}
       
       {/* Tab select buttons */}
       <MatchTabs
@@ -78,6 +122,7 @@ export const MatchMaker: React.FC = () => {
                   key={match.profile.uid}
                   match={match}
                   onProposeTrade={proposeAutoTrade}
+                  onOpenManualTrade={setManualTradeMatch}
                 />
               ))
             )}
@@ -102,6 +147,13 @@ export const MatchMaker: React.FC = () => {
           )}
         </div>
       )}
+
+      <ManualTradeModal
+        open={!!manualTradeMatch}
+        match={manualTradeMatch}
+        onClose={() => setManualTradeMatch(null)}
+        onSubmit={handleSubmitManualTrade}
+      />
 
     </section>
   );
