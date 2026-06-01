@@ -9,31 +9,22 @@ import { Bell, User } from 'lucide-react';
 import { NotificationsPanel } from './header/NotificationsPanel';
 import { ProfilePanel } from './header/ProfilePanel';
 
-const LOCALITY_OPTIONS = [
-  'San Vicente',
-  'Los Sembrados',
-  'Colonia Margarita',
-  'María Juana',
-  'San Martín',
-  'Angélica'
-];
+interface HeaderProps {
+  onOpenSettings: () => void;
+}
 
-export const Header: React.FC = () => {
+export const Header: React.FC<HeaderProps> = ({ onOpenSettings }) => {
   const {
     currentUser,
     notifications,
     signIn,
     signOut,
-    isDemoMode,
     clearNotification,
-    markAllNotificationsAsRead,
-    updateUserLocation
+    markAllNotificationsAsRead
   } = useApp();
 
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
-  const [locInput, setLocInput] = useState(currentUser?.location || '');
-  const [isUpdatingLoc, setIsUpdatingLoc] = useState(false);
   const notifButtonRef = useRef<HTMLButtonElement>(null);
   const profileButtonRef = useRef<HTMLButtonElement>(null);
   const notifPanelRef = useRef<HTMLDivElement>(null);
@@ -42,10 +33,6 @@ export const Header: React.FC = () => {
   const prevProfileOpen = useRef(false);
 
   const unreadNotifs = notifications.filter(n => !n.read);
-
-  useEffect(() => {
-    setLocInput(currentUser?.location || '');
-  }, [currentUser?.location]);
 
   useEffect(() => {
     if (notifOpen && !prevNotifOpen.current) {
@@ -66,14 +53,6 @@ export const Header: React.FC = () => {
     }
     prevProfileOpen.current = profileOpen;
   }, [profileOpen]);
-
-  const handleUpdateLoc = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsUpdatingLoc(true);
-    await updateUserLocation(locInput);
-    setIsUpdatingLoc(false);
-    setProfileOpen(false);
-  };
 
   return (
     <header className="lg:hidden sticky top-0 z-40 bg-white border-b border-gray-100 shadow-xs px-4 py-3">
@@ -157,13 +136,8 @@ export const Header: React.FC = () => {
                 open={profileOpen}
                 panelRef={profilePanelRef}
                 currentUser={currentUser}
-                locInput={locInput}
-                localityOptions={LOCALITY_OPTIONS}
-                isUpdatingLoc={isUpdatingLoc}
-                isDemoMode={isDemoMode}
                 onClose={() => setProfileOpen(false)}
-                onLocInputChange={setLocInput}
-                onUpdateLocation={handleUpdateLoc}
+                onOpenSettings={onOpenSettings}
                 onSignOut={signOut}
               />
             </div>

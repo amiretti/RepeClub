@@ -7,6 +7,7 @@ import { MapPin, Send, Sparkles, PencilLine } from 'lucide-react';
 import { motion } from 'motion/react';
 import { getStickerNameAndTeam } from '../../stickerData';
 import { buildStickerReportLinesForCodes } from '../../utils/stickerReport';
+import { getProfileDisplayName } from '../../utils/userProfile';
 import { MatchCandidate } from './types';
 
 const WhatsAppIcon: React.FC<{ className?: string }> = ({ className = 'w-3.5 h-3.5' }) => (
@@ -56,16 +57,16 @@ export const MatchCard: React.FC<MatchCardProps> = ({ match, onProposeTrade, onO
         {match.profile.photoURL ? (
           <img
             src={match.profile.photoURL}
-            alt={match.profile.name}
+            alt={getProfileDisplayName(match.profile)}
             className="w-10 h-10 rounded-2xl object-cover border border-slate-100"
           />
         ) : (
           <div className="w-10 h-10 bg-slate-100 text-slate-700 font-extrabold rounded-2xl flex items-center justify-center text-sm border border-slate-250">
-            {match.profile.name.charAt(0).toUpperCase()}
+            {getProfileDisplayName(match.profile).charAt(0).toUpperCase()}
           </div>
         )}
         <div>
-          <p className="font-extrabold text-slate-900 text-xs">{match.profile.name}</p>
+          <p className="font-extrabold text-slate-900 text-xs">{getProfileDisplayName(match.profile)}</p>
           <p className="text-[10px] text-slate-400 flex items-center gap-0.5 mt-0.5 font-semibold">
             <MapPin className="w-3 h-3 text-sky-600 flex-shrink-0" />
             <span>{match.profile.location || 'Argentina'}</span>

@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { Check, LogOut, MapPin } from 'lucide-react';
+import { LogOut, MapPin, Settings2 } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { UserProfile } from '../../types';
 
@@ -12,13 +12,8 @@ interface ProfilePanelProps {
   open: boolean;
   panelRef: React.RefObject<HTMLDivElement | null>;
   currentUser: UserProfile;
-  locInput: string;
-  localityOptions: string[];
-  isUpdatingLoc: boolean;
-  isDemoMode: boolean;
   onClose: () => void;
-  onLocInputChange: (value: string) => void;
-  onUpdateLocation: (e: React.FormEvent) => Promise<void>;
+  onOpenSettings: () => void;
   onSignOut: () => Promise<void>;
 }
 
@@ -26,13 +21,8 @@ export const ProfilePanel: React.FC<ProfilePanelProps> = ({
   open,
   panelRef,
   currentUser,
-  locInput,
-  localityOptions,
-  isUpdatingLoc,
-  isDemoMode,
   onClose,
-  onLocInputChange,
-  onUpdateLocation,
+  onOpenSettings,
   onSignOut
 }) => {
   return (
@@ -70,7 +60,7 @@ export const ProfilePanel: React.FC<ProfilePanelProps> = ({
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-bold text-slate-800 truncate">{currentUser.name}</p>
+                <p className="text-xs font-bold text-slate-800 truncate">{currentUser.nickname || currentUser.name}</p>
                 <p className="text-[10px] text-slate-500 truncate">{currentUser.email}</p>
               </div>
             </div>
@@ -78,46 +68,21 @@ export const ProfilePanel: React.FC<ProfilePanelProps> = ({
               <MapPin className="w-3 h-3 text-sky-600 flex-shrink-0" />
               <span className="truncate">Zona: <strong>{currentUser.location || 'Sin cargar'}</strong></span>
             </div>
+            <div className="mt-2 flex items-center gap-1 text-[10px] text-slate-600 bg-white border border-slate-200 rounded-lg px-2 py-1">
+              <Settings2 className="w-3 h-3 text-emerald-600 flex-shrink-0" />
+              <span className="truncate">Radio: <strong>{currentUser.searchRadiusKm || 5} km</strong></span>
+            </div>
           </div>
 
-          <form onSubmit={onUpdateLocation} className="p-4 border-b border-slate-100">
-            <label htmlFor="locality_input" className="text-[10px] font-bold text-slate-500 block mb-1">Poné o cambiá tu localidad</label>
-            <div className="flex gap-1">
-              <select
-                id="locality_input"
-                value={locInput}
-                onChange={(e) => onLocInputChange(e.target.value)}
-                required
-                className="flex-1 text-xs border border-slate-200 rounded-xl px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-sky-500 focus:border-sky-500 bg-slate-50/50"
-              >
-                <option value="" disabled>Seleccioná tu localidad</option>
-                {localityOptions.map((locality) => (
-                  <option key={locality} value={locality}>
-                    {locality}
-                  </option>
-                ))}
-              </select>
-              <button
-                type="submit"
-                disabled={isUpdatingLoc || !locInput}
-                aria-label="Guardar zona"
-                className="bg-sky-600 hover:bg-sky-700 active:scale-95 text-white p-2 rounded-xl transition-all"
-              >
-                <Check className="w-4 h-4" />
-              </button>
-            </div>
-            <p className="text-[9px] text-slate-400 mt-1">Esto ayuda a que te encuentren más fácil para canjear.</p>
-          </form>
-
-          {isDemoMode && (
-            <div className="p-3 bg-blue-50/50 mx-3 mt-3 rounded-xl border border-blue-100/50 text-center">
-              <p className="text-[9px] font-semibold text-blue-950 leading-tight">
-                ⭐️ Estás en modo local. Conectate con Firebase para sincronizar todo y canjear con gente cerca.
-              </p>
-            </div>
-          )}
-
           <div className="p-3 bg-slate-105 flex gap-2">
+            <button
+              onClick={onOpenSettings}
+              aria-label="Abrir configuración"
+              className="w-full py-2 bg-white border border-slate-200 rounded-xl text-[11px] font-bold text-slate-600 hover:bg-slate-50 hover:border-slate-300 transition-colors flex items-center justify-center gap-1.5"
+            >
+              <Settings2 className="w-3.5 h-3.5" />
+              Configuración
+            </button>
             <button
               onClick={onSignOut}
               aria-label="Cerrar sesión"

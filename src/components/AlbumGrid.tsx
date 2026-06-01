@@ -324,8 +324,18 @@ export const AlbumGrid: React.FC = () => {
             placeholder="Buscá por código, jugador o selección..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full text-xs font-semibold pl-9 pr-4 py-2.5 bg-white border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-sky-500 shadow-xs placeholder:text-slate-450"
+            className="w-full text-xs font-semibold pl-9 pr-11 py-2.5 bg-white border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-sky-500 shadow-xs placeholder:text-slate-450"
           />
+          {searchQuery.trim() !== '' && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery('')}
+              aria-label="Borrar búsqueda"
+              className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-colors flex items-center justify-center"
+            >
+              <span className="text-sm leading-none font-black">×</span>
+            </button>
+          )}
         </div>
 
         {/* filter triggers */}
@@ -399,7 +409,11 @@ export const AlbumGrid: React.FC = () => {
             )}
           </span>
           <span className="text-[10px] font-mono font-medium text-slate-400">
-            {filteredStickers.length} figus
+            {filteredStickers.length === 0
+              ? 'ninguna figu'
+              : filteredStickers.length === 1
+                ? '1 figu'
+                : `${filteredStickers.length} figus`}
           </span>
         </div>
 

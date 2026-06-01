@@ -6,6 +6,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { UserProfile, UserStickerInventory, TradeOffer, AppNotification } from '../types';
 import { db, auth, isFirebaseConfigured, handleFirestoreError, OperationType } from '../firebase';
+import { DEFAULT_SEARCH_RADIUS_KM, getProfileDisplayName, normalizeUserProfile } from '../utils/userProfile';
 import {
   signInWithPopup,
   signInWithRedirect,
@@ -42,6 +43,7 @@ interface AppContextType {
   signOut: () => Promise<void>;
   updateStickerCount: (code: string, count: number) => Promise<void>;
   updateUserLocation: (location: string) => Promise<void>;
+  updateUserSettings: (updates: Partial<Pick<UserProfile, 'nickname' | 'location' | 'searchRadiusKm' | 'locationPlaceId' | 'locationLat' | 'locationLng'>>) => Promise<void>;
   createTradeOffer: (receiverId: string, offered: string[], requested: string[], tradeType?: 'auto' | 'manual') => Promise<void>;
   updateTradeStatus: (tradeId: string, status: 'accepted' | 'declined' | 'cancelled') => Promise<void>;
   clearNotification: (notificationId: string) => Promise<void>;
@@ -64,9 +66,13 @@ const INITIAL_MOCK_USERS = [
     profile: {
       uid: 'mock_mateo',
       name: 'Mateo (Belgrano)',
+      nickname: 'Mateo',
       email: 'mateo@album2026.com',
       photoURL: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&h=120&q=80',
       location: 'Belgrano, CABA',
+      searchRadiusKm: 25,
+      locationLat: -34.5642,
+      locationLng: -58.4518,
       updatedAt: new Date().toISOString()
     },
     stickers: {
@@ -77,9 +83,13 @@ const INITIAL_MOCK_USERS = [
     profile: {
       uid: 'mock_clara',
       name: 'Clara (Palermo)',
+      nickname: 'Clara',
       email: 'clara@album2026.com',
       photoURL: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&h=120&q=80',
       location: 'Palermo, CABA',
+      searchRadiusKm: 25,
+      locationLat: -34.5867,
+      locationLng: -58.4254,
       updatedAt: new Date().toISOString()
     },
     stickers: {
@@ -90,9 +100,13 @@ const INITIAL_MOCK_USERS = [
     profile: {
       uid: 'mock_benjamin',
       name: 'Benja (Caballito)',
+      nickname: 'Benja',
       email: 'benji@album2026.com',
       photoURL: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=120&h=120&q=80',
       location: 'Caballito, CABA',
+      searchRadiusKm: 25,
+      locationLat: -34.6188,
+      locationLng: -58.4427,
       updatedAt: new Date().toISOString()
     },
     stickers: {
@@ -181,28 +195,40 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 userProfile = userSnap.data() as UserProfile;
               } else {
                 // Create new user profile document in Firestore
-                const newProfile: UserProfile = {
+                const newProfile = normalizeUserProfile({
                   uid: fbUser.uid,
                   name: fbUser.displayName || 'Coleccionista',
+                  nickname: fbUser.displayName || 'Coleccionista',
                   email: fbUser.email || '',
                   photoURL: fbUser.photoURL || null,
                   location: 'San Vicente',
+                  searchRadiusKm: DEFAULT_SEARCH_RADIUS_KM,
+                  locationPlaceId: null,
+                  locationLat: null,
+                  locationLng: null,
                   updatedAt: new Date().toISOString()
-                };
+                });
                 await setDoc(userDocRef, newProfile);
                 userProfile = newProfile;
               }
             } catch (err) {
               console.warn('Error fetching user profile from Firestore, using fallback profile:', err);
-              userProfile = {
+              userProfile = normalizeUserProfile({
                 uid: fbUser.uid,
                 name: fbUser.displayName || 'Coleccionista',
+                nickname: fbUser.displayName || 'Coleccionista',
                 email: fbUser.email || '',
                 photoURL: fbUser.photoURL || null,
                 location: 'San Vicente',
+                searchRadiusKm: DEFAULT_SEARCH_RADIUS_KM,
+                locationPlaceId: null,
+                locationLat: null,
+                locationLng: null,
                 updatedAt: new Date().toISOString()
-              };
+              });
             }
+
+            userProfile = normalizeUserProfile(userProfile);
 
             setCurrentUser(userProfile);
 
@@ -395,8 +421,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // UPDATE USER LOCATION
   const updateUserLocation = async (location: string) => {
+    await updateUserSettings({ location });
+  };
+
+  const updateUserSettings = async (updates: Partial<Pick<UserProfile, 'nickname' | 'location' | 'searchRadiusKm' | 'locationPlaceId' | 'locationLat' | 'locationLng'>>) => {
     if (!currentUser) return;
-    const nextProfile = { ...currentUser, location, updatedAt: new Date().toISOString() };
+
+    const nextProfile: UserProfile = {
+      ...currentUser,
+      ...updates,
+      nickname: updates.nickname?.trim() || currentUser.nickname || currentUser.name,
+      location: updates.location ?? currentUser.location,
+      searchRadiusKm: updates.searchRadiusKm ?? currentUser.searchRadiusKm ?? DEFAULT_SEARCH_RADIUS_KM,
+      locationPlaceId: updates.locationPlaceId ?? currentUser.locationPlaceId ?? null,
+      locationLat: typeof updates.locationLat === 'number' ? updates.locationLat : (currentUser.locationLat ?? null),
+      locationLng: typeof updates.locationLng === 'number' ? updates.locationLng : (currentUser.locationLng ?? null),
+      updatedAt: new Date().toISOString()
+    };
+
     setCurrentUser(nextProfile);
 
     if (isDemoMode) {
@@ -428,12 +470,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       ? `trade_${Date.now()}` 
       : doc(collection(db!, 'trades')).id;
 
-    const receiverName = allUsers.find(u => u.profile.uid === receiverId)?.profile.name || 'Colega figu';
+    const receiverProfile = allUsers.find(u => u.profile.uid === receiverId)?.profile;
+    const receiverName = getProfileDisplayName(receiverProfile) || 'Colega figu';
+    const senderName = getProfileDisplayName(currentUser);
 
     const newTrade: TradeOffer = {
       id: tradeId,
       senderId: currentUser.uid,
-      senderName: currentUser.name,
+      senderName,
       receiverId,
       receiverName,
       offeredStickers: offered,
@@ -450,7 +494,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       id: notifId,
       userId: receiverId,
       title: '🤝 ¡Te llegó una propuesta de canje!',
-      body: `${currentUser.name} te quiere canjear figus. Te ofrece ${offered.length} y te pide ${requested.length}.`,
+      body: `${senderName} te quiere canjear figus. Te ofrece ${offered.length} y te pide ${requested.length}.`,
       type: 'trade_incoming',
       tradeId,
       read: false,
@@ -549,7 +593,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         id: notifId,
         userId: recipientId,
         title: '📊 Novedades del canje',
-        body: `${currentUser.name} ${status === 'accepted' ? 'aceptó' : status === 'declined' ? 'rechazó' : 'canceló'} el canje.`,
+        body: `${senderName} ${status === 'accepted' ? 'aceptó' : status === 'declined' ? 'rechazó' : 'canceló'} el canje.`,
         type: 'trade_update',
         tradeId,
         read: false,
@@ -630,6 +674,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         signOut,
         updateStickerCount,
         updateUserLocation,
+        updateUserSettings,
         createTradeOffer,
         updateTradeStatus,
         clearNotification,

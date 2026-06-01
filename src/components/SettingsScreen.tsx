@@ -1,0 +1,248 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import React, { useEffect, useRef, useState } from 'react';
+import { Check, MapPin, UserRoundPen } from 'lucide-react';
+import { useApp } from '../context/AppContext';
+import { ALLOWED_SEARCH_RADII_KM, getProfileDisplayName } from '../utils/userProfile';
+
+declare global {
+  interface Window {
+    google?: any;
+  }
+}
+
+let googlePlacesLoader: Promise<void> | null = null;
+
+const loadGooglePlacesScript = (): Promise<void> => {
+  if (window.google?.maps?.places) {
+    return Promise.resolve();
+  }
+
+  if (googlePlacesLoader) {
+    return googlePlacesLoader;
+  }
+
+  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+  if (!apiKey) {
+    return Promise.reject(new Error('Missing Google Maps API key'));
+  }
+
+  googlePlacesLoader = new Promise((resolve, reject) => {
+    const existingScript = document.getElementById('google-maps-places-script') as HTMLScriptElement | null;
+
+    if (existingScript) {
+      existingScript.addEventListener('load', () => resolve(), { once: true });
+      existingScript.addEventListener('error', () => reject(new Error('Failed to load Google Places script')), { once: true });
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.id = 'google-maps-places-script';
+    script.async = true;
+    script.defer = true;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&libraries=places&language=es&region=AR&loading=async`;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error('Failed to load Google Places script'));
+    document.head.appendChild(script);
+  });
+
+  return googlePlacesLoader;
+};
+
+export const SettingsScreen: React.FC = () => {
+  const { currentUser, updateUserSettings } = useApp();
+  const locationInputRef = useRef<HTMLInputElement>(null);
+  const autocompleteRef = useRef<any>(null);
+  const [nickname, setNickname] = useState('');
+  const [location, setLocation] = useState('');
+  const [searchRadiusKm, setSearchRadiusKm] = useState(5);
+  const [placeMeta, setPlaceMeta] = useState<{ placeId: string | null; lat: number | null; lng: number | null }>({
+    placeId: null,
+    lat: null,
+    lng: null
+  });
+  const [isPlacesReady, setIsPlacesReady] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!currentUser) return;
+
+    setNickname(currentUser.nickname || currentUser.name);
+    setLocation(currentUser.location || '');
+    setSearchRadiusKm(currentUser.searchRadiusKm || 5);
+    setPlaceMeta({
+      placeId: currentUser.locationPlaceId ?? null,
+      lat: typeof currentUser.locationLat === 'number' ? currentUser.locationLat : null,
+      lng: typeof currentUser.locationLng === 'number' ? currentUser.locationLng : null
+    });
+  }, [currentUser]);
+
+  useEffect(() => {
+    let isMounted = true;
+    let placeChangedListener: { remove?: () => void } | null = null;
+
+    if (!locationInputRef.current) return;
+
+    loadGooglePlacesScript()
+      .then(() => {
+        if (!isMounted || !locationInputRef.current || !window.google?.maps?.places) {
+          return;
+        }
+
+        const autocomplete = new window.google.maps.places.Autocomplete(locationInputRef.current, {
+          types: ['(cities)'],
+          fields: ['place_id', 'name', 'formatted_address', 'geometry']
+        });
+
+        placeChangedListener = autocomplete.addListener('place_changed', () => {
+          const place = autocomplete.getPlace();
+          const lat = place?.geometry?.location?.lat?.();
+          const lng = place?.geometry?.location?.lng?.();
+
+          setLocation(place?.name || place?.formatted_address || locationInputRef.current?.value || '');
+          setPlaceMeta({
+            placeId: place?.place_id || null,
+            lat: typeof lat === 'number' ? lat : null,
+            lng: typeof lng === 'number' ? lng : null
+          });
+        });
+
+        autocompleteRef.current = autocomplete;
+        setIsPlacesReady(true);
+      })
+      .catch(() => {
+        if (isMounted) {
+          setIsPlacesReady(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+      placeChangedListener?.remove?.();
+      autocompleteRef.current = null;
+    };
+  }, []);
+
+  if (!currentUser) return null;
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSaving(true);
+
+    await updateUserSettings({
+      nickname: nickname.trim() || currentUser.name,
+      location: location.trim(),
+      locationPlaceId: placeMeta.placeId,
+      locationLat: placeMeta.lat,
+      locationLng: placeMeta.lng,
+      searchRadiusKm
+    });
+
+    setFeedback('Configuración guardada');
+    setIsSaving(false);
+    window.setTimeout(() => setFeedback(null), 2500);
+  };
+
+  return (
+    <section aria-labelledby="settings-title" className="w-full px-4 lg:px-6 pb-8 py-4 lg:py-6">
+      <div className="max-w-2xl mx-auto space-y-4">
+        <div className="bg-gradient-to-br from-slate-950 via-slate-900 to-sky-950 text-white rounded-[2rem] p-5 shadow-xl overflow-hidden relative">
+          <div className="absolute top-0 right-0 p-5 opacity-10 text-7xl select-none rotate-12">⚙️</div>
+          <p className="text-[10px] uppercase tracking-[0.3em] text-sky-200 font-black">Configuración</p>
+          <h2 id="settings-title" className="text-2xl font-black tracking-tight mt-2">Perfil y preferencias</h2>
+          <p className="text-sm text-slate-300 mt-2 max-w-xl">Ajustá cómo te ven y qué tan lejos querés ver canjes.</p>
+        </div>
+
+        <form onSubmit={handleSave} className="space-y-4">
+          <div className="bg-white rounded-[1.75rem] border border-slate-200 shadow-sm p-4 space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-2xl bg-sky-50 text-sky-700 flex items-center justify-center">
+                <UserRoundPen className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-xs font-black text-slate-900">Tu nombre visible</p>
+                <p className="text-[11px] text-slate-500">El nickname se muestra en canjes y contactos.</p>
+              </div>
+            </div>
+
+            <label className="block">
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Nickname</span>
+              <input
+                value={nickname}
+                onChange={(e) => setNickname(e.target.value)}
+                placeholder={currentUser.name}
+                className="mt-1 w-full rounded-2xl border border-slate-200 bg-slate-50/60 px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-sky-500 focus:border-sky-500"
+              />
+            </label>
+          </div>
+
+          <div className="bg-white rounded-[1.75rem] border border-slate-200 shadow-sm p-4 space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center">
+                <MapPin className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-xs font-black text-slate-900">Zona y distancia</p>
+                <p className="text-[11px] text-slate-500">Mostrá canjes dentro del radio que elijas.</p>
+              </div>
+            </div>
+
+            <label className="block">
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Localidad</span>
+              <input
+                ref={locationInputRef}
+                value={location}
+                onChange={(e) => {
+                  setLocation(e.target.value);
+                  setPlaceMeta({ placeId: null, lat: null, lng: null });
+                }}
+                placeholder={isPlacesReady ? 'Buscá tu ciudad' : 'Escribí tu localidad'}
+                autoComplete="off"
+                className="mt-1 w-full rounded-2xl border border-slate-200 bg-slate-50/60 px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-sky-500 focus:border-sky-500"
+              />
+            </label>
+            <p className="text-[10px] text-slate-400">
+              {isPlacesReady
+                ? 'Usamos Google Places para autocompletar ciudades.'
+                : 'Si Google no carga, podés escribir la localidad manualmente.'}
+            </p>
+
+            <label className="block">
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Radio de canjes</span>
+              <select
+                value={searchRadiusKm}
+                onChange={(e) => setSearchRadiusKm(Number(e.target.value))}
+                className="mt-1 w-full rounded-2xl border border-slate-200 bg-slate-50/60 px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-sky-500 focus:border-sky-500"
+              >
+                {ALLOWED_SEARCH_RADII_KM.map((radius) => (
+                  <option key={radius} value={radius}>{radius} km</option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          <div className="bg-sky-50 border border-sky-100 rounded-[1.5rem] p-4 text-xs text-sky-950 leading-relaxed">
+            <strong className="block mb-1">Vista previa</strong>
+            Te van a ver como <strong>{getProfileDisplayName(currentUser)}</strong> y vas a ver canjes dentro de <strong>{searchRadiusKm} km</strong>.
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              type="submit"
+              disabled={isSaving}
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-sky-600 px-4 py-3 text-white font-black text-sm shadow-lg shadow-sky-200 hover:bg-sky-700 active:scale-[0.98] disabled:opacity-70"
+            >
+              <Check className="w-4 h-4" />
+              {isSaving ? 'Guardando...' : 'Guardar configuración'}
+            </button>
+            {feedback && <span className="text-[11px] font-semibold text-emerald-700">{feedback}</span>}
+          </div>
+        </form>
+      </div>
+    </section>
+  );
+};

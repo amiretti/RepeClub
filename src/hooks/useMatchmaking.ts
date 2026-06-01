@@ -8,6 +8,18 @@ import { STICKER_NAMES } from '../stickerData';
 import { UserProfile } from '../types';
 import { MatchCandidate } from '../components/matchmaker/types';
 
+const haversineDistanceKm = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
+  const toRad = (value: number) => (value * Math.PI) / 180;
+  const earthRadiusKm = 6371;
+  const deltaLat = toRad(lat2 - lat1);
+  const deltaLng = toRad(lng2 - lng1);
+  const a =
+    Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+    Math.sin(deltaLng / 2) * Math.sin(deltaLng / 2);
+  return 2 * earthRadiusKm * Math.asin(Math.sqrt(a));
+};
+
 interface UseMatchmakingParams {
   currentUser: UserProfile | null;
   allUsers: { profile: UserProfile; stickers: { [code: string]: number } }[];
@@ -30,6 +42,23 @@ export const useMatchmaking = ({
 
     allUsers.forEach(({ profile, stickers }) => {
       if (profile.uid === currentUser.uid) return;
+
+      const maxRadius = currentUser.searchRadiusKm || 5;
+      const hasCurrentCoords = typeof currentUser.locationLat === 'number' && typeof currentUser.locationLng === 'number';
+      const hasOtherCoords = typeof profile.locationLat === 'number' && typeof profile.locationLng === 'number';
+
+      if (hasCurrentCoords && hasOtherCoords) {
+        const distanceKm = haversineDistanceKm(
+          currentUser.locationLat as number,
+          currentUser.locationLng as number,
+          profile.locationLat as number,
+          profile.locationLng as number
+        );
+
+        if (distanceKm > maxRadius) {
+          return;
+        }
+      }
 
       if (locationFilter.trim() !== '') {
         const userLocLower = (profile.location || '').toLowerCase();

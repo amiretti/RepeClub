@@ -6,9 +6,14 @@
 export interface UserProfile {
   uid: string;
   name: string;
+  nickname: string;
   email: string;
   photoURL: string | null;
   location: string;
+  searchRadiusKm: number;
+  locationPlaceId?: string | null;
+  locationLat?: number | null;
+  locationLng?: number | null;
   updatedAt: string;
 }
 

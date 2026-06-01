@@ -11,7 +11,7 @@ import { AppShell } from './components/AppShell';
 
 function AppContent() {
   const { currentUser, signIn, loading, authInProgress } = useApp();
-  const [activeTab, setActiveTab] = useState<'album' | 'canjes'>('album');
+  const [activeTab, setActiveTab] = useState<'album' | 'canjes' | 'config'>('album');
   const [liveAnnouncement, setLiveAnnouncement] = useState('Estás en colección');
   const [appAlert, setAppAlert] = useState<string | null>(null);
 
@@ -35,7 +35,13 @@ function AppContent() {
   }, [appAlert]);
 
   useEffect(() => {
-    setLiveAnnouncement(activeTab === 'album' ? 'Estás en colección' : 'Estás en canjes');
+    setLiveAnnouncement(
+      activeTab === 'album'
+        ? 'Estás en colección'
+        : activeTab === 'canjes'
+          ? 'Estás en canjes'
+          : 'Estás en configuración'
+    );
   }, [activeTab]);
 
   if (loading) {

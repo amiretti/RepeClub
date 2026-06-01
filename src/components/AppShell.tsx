@@ -4,16 +4,18 @@
  */
 
 import { useRef, useState } from 'react';
-import { Trophy, Compass, Bell, LogOut, MapPin } from 'lucide-react';
+import { Trophy, Compass, Bell, LogOut, MapPin, Settings2 } from 'lucide-react';
 import { Header } from './Header';
 import { AlbumGrid } from './AlbumGrid';
 import { MatchMaker } from './MatchMaker';
+import { SettingsScreen } from './SettingsScreen';
 import { useApp } from '../context/AppContext';
 import { NotificationsPanel } from './header/NotificationsPanel';
+import { getProfileDisplayName } from '../utils/userProfile';
 
 interface AppShellProps {
-  activeTab: 'album' | 'canjes';
-  setActiveTab: (tab: 'album' | 'canjes') => void;
+  activeTab: 'album' | 'canjes' | 'config';
+  setActiveTab: (tab: 'album' | 'canjes' | 'config') => void;
   liveAnnouncement: string;
   appAlert: string | null;
 }
@@ -52,6 +54,16 @@ export const AppShell: React.FC<AppShellProps> = ({ activeTab, setActiveTab, liv
             <Compass className="w-4 h-4 flex-shrink-0" />
             <span className="text-xs font-extrabold">Canjes</span>
           </div>
+
+          <button
+            onClick={() => setActiveTab('config')}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${
+              activeTab === 'config' ? 'bg-emerald-50 border border-emerald-100 text-emerald-700' : 'text-slate-500 hover:bg-slate-50'
+            }`}
+          >
+            <Settings2 className="w-4 h-4 flex-shrink-0" />
+            <span className="text-xs font-extrabold">Configuración</span>
+          </button>
 
           {/* Notifications */}
           <div className="pt-4">
@@ -93,32 +105,45 @@ export const AppShell: React.FC<AppShellProps> = ({ activeTab, setActiveTab, liv
               {currentUser.photoURL ? (
                 <img
                   src={currentUser.photoURL}
-                  alt={currentUser.name}
+                  alt={getProfileDisplayName(currentUser)}
                   className="w-9 h-9 rounded-full object-cover border border-sky-100 flex-shrink-0"
                   referrerPolicy="no-referrer"
                 />
               ) : (
                 <div className="w-9 h-9 bg-amber-400 text-white font-extrabold rounded-full flex items-center justify-center text-sm flex-shrink-0">
-                  {currentUser.name.charAt(0).toUpperCase()}
+                  {getProfileDisplayName(currentUser).charAt(0).toUpperCase()}
                 </div>
               )}
               <div className="min-w-0">
-                <p className="text-xs font-extrabold text-slate-800 truncate">{currentUser.name}</p>
+                <p className="text-xs font-extrabold text-slate-800 truncate">{getProfileDisplayName(currentUser)}</p>
                 {currentUser.location && (
                   <p className="text-[10px] text-slate-400 flex items-center gap-1 font-semibold truncate">
                     <MapPin className="w-3 h-3 text-sky-500 flex-shrink-0" />
                     {currentUser.location}
                   </p>
                 )}
+                <p className="text-[10px] text-slate-400 flex items-center gap-1 font-semibold truncate">
+                  <Settings2 className="w-3 h-3 text-emerald-500 flex-shrink-0" />
+                  {currentUser.searchRadiusKm || 5} km
+                </p>
               </div>
             </div>
-            <button
-              onClick={signOut}
-              className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-slate-500 hover:bg-red-50 hover:text-red-600 transition-colors text-xs font-bold focus:outline-none"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              Cerrar sesión
-            </button>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => setActiveTab('config')}
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition-colors text-xs font-bold focus:outline-none"
+              >
+                <Settings2 className="w-3.5 h-3.5" />
+                Configuración
+              </button>
+              <button
+                onClick={signOut}
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-slate-500 hover:bg-red-50 hover:text-red-600 transition-colors text-xs font-bold focus:outline-none"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                Cerrar sesión
+              </button>
+            </div>
           </div>
         )}
       </aside>
@@ -127,7 +152,7 @@ export const AppShell: React.FC<AppShellProps> = ({ activeTab, setActiveTab, liv
       <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden">
 
         {/* Mobile-only header (hidden on lg+) */}
-        <Header />
+        <Header onOpenSettings={() => setActiveTab('config')} />
 
         {appAlert && (
           <div role="alert" aria-live="assertive" className="mx-4 mt-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-[11px] font-semibold text-red-700">
@@ -135,30 +160,30 @@ export const AppShell: React.FC<AppShellProps> = ({ activeTab, setActiveTab, liv
           </div>
         )}
 
-        {/* Mobile: show only the active tab */}
-        <main
-          id="app_content_scroller"
-          className="flex-1 overflow-y-auto py-4 lg:hidden"
-          aria-label={activeTab === 'album' ? 'Colección de figuritas' : 'Canjes y propuestas'}
-        >
-          {activeTab === 'album' ? <AlbumGrid /> : <MatchMaker />}
-        </main>
-
-        {/* Desktop: two panels side by side, each with independent scroll */}
-        <div className="hidden lg:flex flex-1 overflow-hidden">
-          <main
-            className="flex-1 overflow-y-auto py-6"
-            aria-label="Colección de figuritas"
-          >
-            <AlbumGrid />
+        {activeTab === 'config' ? (
+          <main id="app_content_scroller" className="flex-1 overflow-y-auto py-4 lg:py-6" aria-label="Configuración">
+            <SettingsScreen />
           </main>
-          <aside
-            className="w-[420px] xl:w-[460px] flex-shrink-0 overflow-y-auto py-6 bg-white border-l border-slate-200"
-            aria-label="Canjes y propuestas"
-          >
-            <MatchMaker />
-          </aside>
-        </div>
+        ) : (
+          <>
+            <main
+              id="app_content_scroller"
+              className="flex-1 overflow-y-auto py-4 lg:hidden"
+              aria-label={activeTab === 'album' ? 'Colección de figuritas' : 'Canjes y propuestas'}
+            >
+              {activeTab === 'album' ? <AlbumGrid /> : <MatchMaker />}
+            </main>
+
+            <div className="hidden lg:flex flex-1 overflow-hidden">
+              <main className="flex-1 overflow-y-auto py-6" aria-label="Colección de figuritas">
+                <AlbumGrid />
+              </main>
+              <aside className="w-[420px] xl:w-[460px] flex-shrink-0 overflow-y-auto py-6 bg-white border-l border-slate-200" aria-label="Canjes y propuestas">
+                <MatchMaker />
+              </aside>
+            </div>
+          </>
+        )}
 
         {/* Mobile bottom nav (hidden on lg+) */}
         <nav id="bottom_nav_bar" aria-label="Navegación principal" className="lg:hidden sticky bottom-0 bg-white border-t border-slate-200 shadow-lg px-6 py-2.5 flex justify-around">
@@ -186,6 +211,19 @@ export const AppShell: React.FC<AppShellProps> = ({ activeTab, setActiveTab, liv
           >
             <Compass className="w-5 h-5" />
             <span className="text-[9px] uppercase tracking-wider font-extrabold">Canjes</span>
+          </button>
+
+          <button
+            id="tab_nav_config"
+            onClick={() => setActiveTab('config')}
+            aria-current={activeTab === 'config' ? 'page' : undefined}
+            aria-label="Ir a configuración"
+            className={`flex flex-col items-center gap-1 focus:outline-none transition-all active:scale-95 ${
+              activeTab === 'config' ? 'text-sky-600 font-bold scale-105' : 'text-slate-400 hover:text-slate-600'
+            }`}
+          >
+            <Settings2 className="w-5 h-5" />
+            <span className="text-[9px] uppercase tracking-wider font-extrabold">Config</span>
           </button>
         </nav>
       </div>
