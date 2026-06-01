@@ -26,7 +26,7 @@ export const AppShell: React.FC<AppShellProps> = ({ activeTab, setActiveTab, liv
   const unreadNotifs = notifications.filter(n => !n.read);
 
   return (
-    <div id="main_app_layout" className="min-h-screen lg:h-screen bg-slate-50 flex flex-col lg:flex-row lg:overflow-hidden">
+    <div id="main_app_layout" className="h-[100dvh] lg:h-screen bg-slate-50 flex flex-col lg:flex-row overflow-hidden">
       <p className="sr-only" aria-live="polite">{liveAnnouncement}</p>
 
       {/* ===== DESKTOP SIDEBAR ===== */}
@@ -124,7 +124,7 @@ export const AppShell: React.FC<AppShellProps> = ({ activeTab, setActiveTab, liv
       </aside>
 
       {/* ===== MAIN CONTENT AREA ===== */}
-      <div className="flex-1 flex flex-col min-w-0 lg:overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden">
 
         {/* Mobile-only header (hidden on lg+) */}
         <Header />

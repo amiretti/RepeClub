@@ -6,7 +6,14 @@
 import { MapPin, Send, Sparkles, PencilLine } from 'lucide-react';
 import { motion } from 'motion/react';
 import { getStickerNameAndTeam } from '../../stickerData';
+import { buildStickerReportLinesForCodes } from '../../utils/stickerReport';
 import { MatchCandidate } from './types';
+
+const WhatsAppIcon: React.FC<{ className?: string }> = ({ className = 'w-3.5 h-3.5' }) => (
+  <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" className={className}>
+    <path d="M13.601 2.326A7.854 7.854 0 0 0 8.01 0C3.701 0 .193 3.498.193 7.8c0 1.375.359 2.717 1.04 3.904L0 16l4.41-1.229a7.83 7.83 0 0 0 3.6.868h.003c4.308 0 7.816-3.499 7.816-7.8a7.75 7.75 0 0 0-2.228-5.513zm-5.59 11.997h-.002a6.53 6.53 0 0 1-3.33-.91l-.24-.143-2.615.728.698-2.545-.156-.262a6.47 6.47 0 0 1-.995-3.44c.001-3.57 2.92-6.475 6.512-6.475 1.74.001 3.375.674 4.604 1.897a6.42 6.42 0 0 1 1.908 4.58c-.001 3.57-2.922 6.47-6.515 6.47zm3.572-4.878c-.196-.098-1.163-.573-1.343-.638-.18-.065-.311-.098-.442.098-.13.196-.507.638-.622.769-.114.13-.229.147-.425.049-.196-.098-.827-.302-1.576-.964-.583-.517-.977-1.154-1.092-1.35-.114-.196-.012-.302.086-.4.088-.088.196-.228.294-.343a1.33 1.33 0 0 0 .196-.327c.065-.13.033-.245-.016-.343-.049-.098-.442-1.06-.605-1.452-.159-.38-.32-.329-.442-.335a7.77 7.77 0 0 0-.376-.007c-.13 0-.343.049-.523.245-.18.196-.687.67-.687 1.633 0 .964.704 1.896.802 2.027.098.13 1.388 2.112 3.361 2.962.47.203.836.324 1.123.415.472.15.902.129 1.242.078.379-.057 1.163-.475 1.327-.933.163-.458.163-.85.114-.933-.049-.082-.18-.13-.376-.229z" />
+  </svg>
+);
 
 interface MatchCardProps {
   match: MatchCandidate;
@@ -15,6 +22,22 @@ interface MatchCardProps {
 }
 
 export const MatchCard: React.FC<MatchCardProps> = ({ match, onProposeTrade, onOpenManualTrade }) => {
+  const handleShareOfferedByWhatsApp = () => {
+    const firstName = (match.profile.name || '').trim().split(/\s+/)[0] || '';
+    const greeting = firstName ? `Hola ${firstName}!` : 'Hola!';
+
+    let messageBody: string;
+    if (match.offered.length === 0) {
+      messageBody = `${greeting} No tengo repes que a vos te falten por ahora, pero seguimos atentos.`;
+    } else {
+      const lines = buildStickerReportLinesForCodes(match.offered);
+      messageBody = `${greeting} Estas figus son las repes que tengo yo y que a vos te faltan:\n\n${lines.join('\n')}`;
+    }
+
+    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(messageBody)}`;
+    window.location.assign(whatsappUrl);
+  };
+
   return (
     <motion.div
       layout
@@ -115,6 +138,21 @@ export const MatchCard: React.FC<MatchCardProps> = ({ match, onProposeTrade, onO
         >
           <PencilLine className="w-3.5 h-3.5" />
           Armar canje
+        </button>
+
+        <button
+          onClick={handleShareOfferedByWhatsApp}
+          disabled={match.offered.length === 0}
+          title={
+            match.offered.length === 0
+              ? 'No tenés repes que a esta persona le falten'
+              : 'Compartir por WhatsApp las repes que le podés dar'
+          }
+          aria-label="Compartir por WhatsApp las repes que le podés dar"
+          className="w-full sm:col-span-2 py-2.5 rounded-[1.25rem] font-black text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs active:scale-95 bg-emerald-500 text-white hover:bg-emerald-400 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
+        >
+          <WhatsAppIcon className="w-3.5 h-3.5" />
+          Mandar mis repes por WhatsApp
         </button>
       </div>
     </motion.div>
