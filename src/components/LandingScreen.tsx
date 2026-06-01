@@ -94,7 +94,7 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({ signIn, authInProg
             href="https://harvi.digital"
             target="_blank"
             rel="noopener noreferrer"
-            className="font-bold underline decoration-sky-300 underline-offset-2"
+            className="font-bold underline decoration-[#cbdf4a] underline-offset-2"
           >
             <span className="text-[#cbdf4a]">HARVI</span>
           </a>
