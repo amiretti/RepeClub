@@ -324,7 +324,7 @@ export const AlbumGrid: React.FC = () => {
             placeholder="Buscá por código, jugador o selección..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full text-xs font-semibold pl-9 pr-11 py-2.5 bg-white border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-sky-500 shadow-xs placeholder:text-slate-450"
+            className="w-full text-base sm:text-xs font-semibold pl-9 pr-11 py-2.5 bg-white border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-sky-500 shadow-xs placeholder:text-slate-450"
           />
           {searchQuery.trim() !== '' && (
             <button
