@@ -329,10 +329,21 @@
         transform: translateY(-1px);
       }
 
-      .nav a.cta-mini {
-        background: linear-gradient(135deg, var(--brand) 0%, var(--brand-strong) 100%);
-        border-color: rgba(255, 255, 255, 0.24);
+      .cta-mini {
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 0.94rem;
+        border-radius: 999px;
+        padding: 10px 14px;
+        border: 1px solid rgba(255, 255, 255, 0.24);
         color: #f8fcff;
+        background: linear-gradient(135deg, var(--brand) 0%, var(--brand-strong) 100%);
+        box-shadow: 0 8px 20px rgba(21, 112, 223, 0.35);
+        transition: transform 180ms ease;
+      }
+
+      .cta-mini:hover {
+        transform: translateY(-1px);
       }
 
       .menu {
