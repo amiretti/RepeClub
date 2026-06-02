@@ -34,6 +34,7 @@ interface AppContextType {
   currentUser: UserProfile | null;
   inventory: { [code: string]: number };
   allUsers: { profile: UserProfile; stickers: { [code: string]: number } }[];
+  friendIds: string[];
   trades: TradeOffer[];
   notifications: AppNotification[];
   isDemoMode: boolean;
@@ -46,6 +47,9 @@ interface AppContextType {
   updateUserSettings: (updates: Partial<Pick<UserProfile, 'nickname' | 'location' | 'searchRadiusKm' | 'locationPlaceId' | 'locationLat' | 'locationLng'>>) => Promise<void>;
   createTradeOffer: (receiverId: string, offered: string[], requested: string[], tradeType?: 'auto' | 'manual') => Promise<void>;
   updateTradeStatus: (tradeId: string, status: 'accepted' | 'declined' | 'cancelled') => Promise<void>;
+  addFriend: (userId: string) => Promise<void>;
+  removeFriend: (userId: string) => Promise<void>;
+  isFriend: (userId: string) => boolean;
   clearNotification: (notificationId: string) => Promise<void>;
   markAllNotificationsAsRead: () => Promise<void>;
 }
@@ -58,6 +62,7 @@ const LS_INVENTORY = 'panini2026_inventory';
 const LS_TRADES = 'panini2026_trades';
 const LS_NOTIFICATIONS = 'panini2026_notifications';
 const LS_MOCK_USERS = 'panini2026_mock_users';
+const LS_FRIENDS = 'panini2026_friends';
 const REDIRECT_FLOW_KEY = 'repeclub_google_redirect_pending';
 
 // Real mock data representing local collectors for rich demonstration
@@ -120,6 +125,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [inventory, setInventory] = useState<{ [code: string]: number }>({});
   const inventoryRef = useRef<{ [code: string]: number }>({});
   const [allUsers, setAllUsers] = useState<{ profile: UserProfile; stickers: { [code: string]: number } }[]>([]);
+  const [friendIds, setFriendIds] = useState<string[]>([]);
   const [trades, setTrades] = useState<TradeOffer[]>([]);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [loading, setLoading] = useState(true);
@@ -139,11 +145,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const storedTrades = localStorage.getItem(LS_TRADES);
       const storedNotifications = localStorage.getItem(LS_NOTIFICATIONS);
       const storedMockUsers = localStorage.getItem(LS_MOCK_USERS);
+      const storedFriends = localStorage.getItem(LS_FRIENDS);
 
       setCurrentUser(null);
       localStorage.removeItem(LS_CURRENT_USER);
 
       setInventory(storedInventory ? JSON.parse(storedInventory) : {});
+      setFriendIds(storedFriends ? JSON.parse(storedFriends) : []);
       setTrades(storedTrades ? JSON.parse(storedTrades) : []);
       setNotifications(storedNotifications ? JSON.parse(storedNotifications) : [
         {
@@ -308,6 +316,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               console.warn(`Notifications sub error: ${err.message}`);
             });
 
+            // Listen to current user friends
+            const friendsQuery = collection(db, 'users', fbUser.uid, 'friends');
+            const unsubFriends = onSnapshot(friendsQuery, (snap) => {
+              const ids = snap.docs.map((d) => d.id);
+              setFriendIds(ids);
+            }, (err) => {
+              console.warn(`Friends sub error: ${err.message}`);
+              setFriendIds([]);
+            });
+
             setLoading(false);
             setAuthInProgress(false);
 
@@ -317,10 +335,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               unsubSenderTrades();
               unsubReceiverTrades();
               unsubNotifications();
+              unsubFriends();
             };
           } else {
             setCurrentUser(null);
             setInventory({});
+            setFriendIds([]);
             setTrades([]);
             setNotifications([]);
             setLoading(false);
@@ -387,7 +407,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       localStorage.removeItem(LS_INVENTORY);
       localStorage.removeItem(LS_TRADES);
       localStorage.removeItem(LS_NOTIFICATIONS);
+      localStorage.removeItem(LS_FRIENDS);
       setInventory({});
+      setFriendIds([]);
       setTrades([]);
       setNotifications([]);
       return;
@@ -396,6 +418,51 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!auth) return;
     await firebaseSignOut(auth);
   };
+
+  const addFriend = async (userId: string) => {
+    if (!currentUser || !userId || userId === currentUser.uid) return;
+
+    if (isDemoMode) {
+      setFriendIds((prev) => {
+        if (prev.includes(userId)) return prev;
+        const next = [...prev, userId];
+        localStorage.setItem(LS_FRIENDS, JSON.stringify(next));
+        return next;
+      });
+      return;
+    }
+
+    if (!db) return;
+    try {
+      await setDoc(doc(db, 'users', currentUser.uid, 'friends', userId), {
+        addedAt: Timestamp.now().toDate().toISOString()
+      }, { merge: true });
+    } catch (err) {
+      handleFirestoreError(err, OperationType.WRITE, `users/${currentUser.uid}/friends/${userId}`);
+    }
+  };
+
+  const removeFriend = async (userId: string) => {
+    if (!currentUser || !userId) return;
+
+    if (isDemoMode) {
+      setFriendIds((prev) => {
+        const next = prev.filter((id) => id !== userId);
+        localStorage.setItem(LS_FRIENDS, JSON.stringify(next));
+        return next;
+      });
+      return;
+    }
+
+    if (!db) return;
+    try {
+      await deleteDoc(doc(db, 'users', currentUser.uid, 'friends', userId));
+    } catch (err) {
+      handleFirestoreError(err, OperationType.DELETE, `users/${currentUser.uid}/friends/${userId}`);
+    }
+  };
+
+  const isFriend = (userId: string) => friendIds.includes(userId);
 
   // UPDATE STICKER COUNTS
   const updateStickerCount = async (code: string, count: number) => {
@@ -674,6 +741,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         currentUser,
         inventory,
         allUsers,
+        friendIds,
         trades,
         notifications,
         isDemoMode,
@@ -686,6 +754,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updateUserSettings,
         createTradeOffer,
         updateTradeStatus,
+        addFriend,
+        removeFriend,
+        isFriend,
         clearNotification,
         markAllNotificationsAsRead
       }}

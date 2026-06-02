@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { AlertCircle } from 'lucide-react';
 import { MatchTabs } from './matchmaker/MatchTabs';
@@ -20,14 +20,20 @@ export const MatchMaker: React.FC = () => {
     currentUser,
     inventory,
     allUsers,
+    friendIds,
     trades,
     createTradeOffer,
-    updateTradeStatus
+    updateTradeStatus,
+    addFriend,
+    removeFriend,
+    isFriend
   } = useApp();
 
   const [activeTab, setActiveTab] = useState<'match' | 'trades'>('match');
   const [searchFiguCode, setSearchFiguCode] = useState('');
+  const [searchNickname, setSearchNickname] = useState('');
   const [locationFilter, setLocationFilter] = useState('');
+  const [showOnlyFriends, setShowOnlyFriends] = useState(false);
   const [manualTradeMatch, setManualTradeMatch] = useState<MatchCandidate | null>(null);
   const [tradeFeedback, setTradeFeedback] = useState<string | null>(null);
   const feedbackTimeoutRef = useRef<number | null>(null);
@@ -56,8 +62,20 @@ export const MatchMaker: React.FC = () => {
     allUsers,
     inventory,
     locationFilter,
-    searchFiguCode
+    searchFiguCode,
+    searchNickname,
+    friendIds
   });
+
+  const friendIdSet = useMemo(() => new Set(friendIds), [friendIds]);
+  const friendMatchCount = useMemo(
+    () => filteredMatchesByFigure.filter((match) => friendIdSet.has(match.profile.uid)).length,
+    [filteredMatchesByFigure, friendIdSet]
+  );
+  const visibleMatches = useMemo(
+    () => (showOnlyFriends ? filteredMatchesByFigure.filter((match) => friendIdSet.has(match.profile.uid)) : filteredMatchesByFigure),
+    [filteredMatchesByFigure, showOnlyFriends, friendIdSet]
+  );
   const { proposeAutoTrade } = useTradeActions({
     createTradeOffer,
     onAutoTradeSent: () => {
@@ -105,22 +123,57 @@ export const MatchMaker: React.FC = () => {
 
           <MatchFilters
             searchFiguCode={searchFiguCode}
+            searchNickname={searchNickname}
             locationFilter={locationFilter}
             onSearchFiguCodeChange={setSearchFiguCode}
+            onSearchNicknameChange={setSearchNickname}
             onLocationFilterChange={setLocationFilter}
           />
 
+          <div className="rounded-2xl border border-slate-200 bg-white p-1.5 flex gap-1" role="group" aria-label="Filtro rápido de contactos">
+            <button
+              type="button"
+              onClick={() => setShowOnlyFriends(false)}
+              aria-pressed={!showOnlyFriends}
+              className={`flex-1 rounded-xl px-3 py-2 text-[11px] font-black transition-colors ${
+                !showOnlyFriends ? 'bg-sky-600 text-white' : 'text-slate-600 hover:bg-slate-100'
+              }`}
+            >
+              Todos ({filteredMatchesByFigure.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowOnlyFriends(true)}
+              aria-pressed={showOnlyFriends}
+              className={`flex-1 rounded-xl px-3 py-2 text-[11px] font-black transition-colors ${
+                showOnlyFriends ? 'bg-emerald-600 text-white' : 'text-slate-600 hover:bg-slate-100'
+              }`}
+            >
+              Solo amigos ({friendMatchCount})
+            </button>
+          </div>
+
           {/* Matches Directory */}
           <div className="space-y-3">
-            {filteredMatchesByFigure.length === 0 ? (
+            {visibleMatches.length === 0 ? (
               <div className="py-12 bg-white border border-dashed border-slate-200 rounded-3xl text-center text-sm text-slate-400 px-4">
-                🧩 Todavía no hay coincidencias para mostrar. Cargá más figus y volvé a probar cuando haya más coleccionistas en línea.
+                {showOnlyFriends
+                  ? '⭐ Todavía no tenés amigos con coincidencias en este filtro. Probá cambiar a "Todos" o marcar más amigos.'
+                  : '🧩 Todavía no hay coincidencias para mostrar. Cargá más figus y volvé a probar cuando haya más coleccionistas en línea.'}
               </div>
             ) : (
-              filteredMatchesByFigure.map((match) => (
+              visibleMatches.map((match) => (
                 <MatchCard
                   key={match.profile.uid}
                   match={match}
+                  isFriend={isFriend(match.profile.uid)}
+                  onToggleFriend={() => {
+                    if (isFriend(match.profile.uid)) {
+                      removeFriend(match.profile.uid);
+                    } else {
+                      addFriend(match.profile.uid);
+                    }
+                  }}
                   onProposeTrade={proposeAutoTrade}
                   onOpenManualTrade={setManualTradeMatch}
                 />

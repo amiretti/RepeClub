@@ -26,6 +26,8 @@ interface UseMatchmakingParams {
   inventory: { [code: string]: number };
   locationFilter: string;
   searchFiguCode: string;
+  searchNickname: string;
+  friendIds: string[];
 }
 
 export const useMatchmaking = ({
@@ -33,7 +35,9 @@ export const useMatchmaking = ({
   allUsers,
   inventory,
   locationFilter,
-  searchFiguCode
+  searchFiguCode,
+  searchNickname,
+  friendIds
 }: UseMatchmakingParams): MatchCandidate[] => {
   const matches = useMemo(() => {
     if (!currentUser) return [];
@@ -63,6 +67,15 @@ export const useMatchmaking = ({
       if (locationFilter.trim() !== '') {
         const userLocLower = (profile.location || '').toLowerCase();
         if (!userLocLower.includes(locationFilter.toLowerCase().trim())) {
+          return;
+        }
+      }
+
+      if (searchNickname.trim() !== '') {
+        const nickname = (profile.nickname || '').toLowerCase();
+        const name = (profile.name || '').toLowerCase();
+        const searchLower = searchNickname.toLowerCase().trim();
+        if (!nickname.includes(searchLower) && !name.includes(searchLower)) {
           return;
         }
       }
@@ -104,9 +117,9 @@ export const useMatchmaking = ({
       }
       return (b.offered.length + b.requested.length) - (a.offered.length + a.requested.length);
     });
-  }, [currentUser, allUsers, inventory, locationFilter]);
+  }, [currentUser, allUsers, inventory, locationFilter, searchNickname]);
 
-  return useMemo(() => {
+  const matchesByFigure = useMemo(() => {
     if (searchFiguCode.trim() === '') return matches;
 
     const searchLower = searchFiguCode.toLowerCase().trim();
@@ -127,4 +140,24 @@ export const useMatchmaking = ({
       return matchedCodes.some((code) => match.requested.includes(code) || match.offered.includes(code));
     });
   }, [matches, searchFiguCode]);
+
+  return useMemo(() => {
+    if (searchNickname.trim() !== '') {
+      return matchesByFigure;
+    }
+
+    const friendIdSet = new Set(friendIds);
+    const friends: MatchCandidate[] = [];
+    const others: MatchCandidate[] = [];
+
+    matchesByFigure.forEach((match) => {
+      if (friendIdSet.has(match.profile.uid)) {
+        friends.push(match);
+      } else {
+        others.push(match);
+      }
+    });
+
+    return [...friends, ...others.slice(0, 5)];
+  }, [matchesByFigure, friendIds, searchNickname]);
 };

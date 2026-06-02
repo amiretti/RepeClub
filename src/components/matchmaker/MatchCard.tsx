@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { MapPin, Send, Sparkles, PencilLine } from 'lucide-react';
+import { MapPin, Send, Sparkles, PencilLine, UserRoundPlus, UserRoundCheck } from 'lucide-react';
 import { motion } from 'motion/react';
 import { getStickerNameAndTeam } from '../../stickerData';
 import { buildStickerReportLinesForCodes } from '../../utils/stickerReport';
@@ -18,11 +18,13 @@ const WhatsAppIcon: React.FC<{ className?: string }> = ({ className = 'w-3.5 h-3
 
 interface MatchCardProps {
   match: MatchCandidate;
+  isFriend: boolean;
+  onToggleFriend: () => void;
   onProposeTrade: (userId: string, offered: string[], requested: string[]) => Promise<void> | void;
   onOpenManualTrade: (match: MatchCandidate) => void;
 }
 
-export const MatchCard: React.FC<MatchCardProps> = ({ match, onProposeTrade, onOpenManualTrade }) => {
+export const MatchCard: React.FC<MatchCardProps> = ({ match, isFriend, onToggleFriend, onProposeTrade, onOpenManualTrade }) => {
   const handleShareOfferedByWhatsApp = () => {
     const firstName = (match.profile.name || '').trim().split(/\s+/)[0] || '';
     const greeting = firstName ? `Hola ${firstName}!` : 'Hola!';
@@ -54,25 +56,41 @@ export const MatchCard: React.FC<MatchCardProps> = ({ match, onProposeTrade, onO
         </span>
       )}
 
-      <div className="flex items-center gap-3">
-        {match.profile.photoURL ? (
-          <img
-            src={match.profile.photoURL}
-            alt={getProfileDisplayName(match.profile)}
-            className="w-10 h-10 rounded-2xl object-cover border border-slate-100"
-          />
-        ) : (
-          <div className="w-10 h-10 bg-slate-100 text-slate-700 font-extrabold rounded-2xl flex items-center justify-center text-sm border border-slate-250">
-            {getProfileDisplayName(match.profile).charAt(0).toUpperCase()}
+      <div className="flex items-start justify-between gap-2.5">
+        <div className="flex items-center gap-3 min-w-0">
+          {match.profile.photoURL ? (
+            <img
+              src={match.profile.photoURL}
+              alt={getProfileDisplayName(match.profile)}
+              className="w-10 h-10 rounded-2xl object-cover border border-slate-100 flex-shrink-0"
+            />
+          ) : (
+            <div className="w-10 h-10 bg-slate-100 text-slate-700 font-extrabold rounded-2xl flex items-center justify-center text-sm border border-slate-250 flex-shrink-0">
+              {getProfileDisplayName(match.profile).charAt(0).toUpperCase()}
+            </div>
+          )}
+          <div className="min-w-0">
+            <p className="font-extrabold text-slate-900 text-xs truncate">{getProfileDisplayName(match.profile)}</p>
+            <p className="text-[10px] text-slate-400 flex items-center gap-0.5 mt-0.5 font-semibold truncate">
+              <MapPin className="w-3 h-3 text-sky-600 flex-shrink-0" />
+              <span>{match.profile.location || 'Argentina'}</span>
+            </p>
           </div>
-        )}
-        <div>
-          <p className="font-extrabold text-slate-900 text-xs">{getProfileDisplayName(match.profile)}</p>
-          <p className="text-[10px] text-slate-400 flex items-center gap-0.5 mt-0.5 font-semibold">
-            <MapPin className="w-3 h-3 text-sky-600 flex-shrink-0" />
-            <span>{match.profile.location || 'Argentina'}</span>
-          </p>
         </div>
+
+        <button
+          onClick={onToggleFriend}
+          aria-pressed={isFriend}
+          aria-label={isFriend ? `Quitar a ${getProfileDisplayName(match.profile)} de amigos` : `Marcar a ${getProfileDisplayName(match.profile)} como amigo`}
+          className={`flex-shrink-0 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-black transition-all border ${
+            isFriend
+              ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+              : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
+          }`}
+        >
+          {isFriend ? <UserRoundCheck className="w-3 h-3" /> : <UserRoundPlus className="w-3 h-3" />}
+          <span className="hidden sm:inline">{isFriend ? 'Amigo' : 'Agregar'}</span>
+        </button>
       </div>
 
       <div className="grid grid-cols-2 gap-3 mt-4 border-t border-slate-150 pt-3">
