@@ -11,7 +11,7 @@ import { AppShell } from './components/AppShell';
 
 function AppContent() {
   const { currentUser, signIn, loading, authInProgress } = useApp();
-  const [activeTab, setActiveTab] = useState<'album' | 'canjes' | 'config'>('album');
+  const [activeTab, setActiveTab] = useState<'album' | 'canjes' | 'stats' | 'config'>('album');
   const [liveAnnouncement, setLiveAnnouncement] = useState('Estás en colección');
   const [appAlert, setAppAlert] = useState<string | null>(null);
 
@@ -40,6 +40,8 @@ function AppContent() {
         ? 'Estás en colección'
         : activeTab === 'canjes'
           ? 'Estás en canjes'
+          : activeTab === 'stats'
+            ? 'Estás en estadísticas'
           : 'Estás en configuración'
     );
   }, [activeTab]);

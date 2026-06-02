@@ -281,14 +281,15 @@ export const AlbumGrid: React.FC = () => {
 
   const handleOpenWhatsApp = (type: 'duplicates' | 'missing') => {
     setWaStatus('idle');
+    const inviteLine = '¿Todavía no usás RepeClub? Sumate gratis y completá el álbum más fácil 😎⚽ https://repeclub.digital';
 
     const reportText = type === 'duplicates'
       ? (duplicateReportLines.length === 0
-        ? 'No tenes figus repetidas para reportar por pais.'
-        : `Hola! estas son mis figus repetidas, te falta alguna de estas?\n\n${duplicateReportLines.join('\n')}`)
+        ? `No tenes figus repetidas para reportar por pais.\n\n${inviteLine}`
+        : `Hola! estas son mis figus repetidas, te falta alguna de estas?\n\n${duplicateReportLines.join('\n')}\n\n${inviteLine}`)
       : (missingReportLines.length === 0
-        ? 'No hay figus faltantes para reportar por pais. Album completo!'
-        : `Hola! Estas son las figus que me faltan, tenes alguna repe?\n\n${missingReportLines.join('\n')}`);
+        ? `No hay figus faltantes para reportar por pais. Album completo!\n\n${inviteLine}`
+        : `Hola! Estas son las figus que me faltan, tenes alguna repe?\n\n${missingReportLines.join('\n')}\n\n${inviteLine}`);
 
     const baseUrl = 'https://api.whatsapp.com/send?text=';
     const whatsappUrl = `${baseUrl}${encodeURIComponent(reportText)}`;

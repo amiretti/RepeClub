@@ -4,18 +4,19 @@
  */
 
 import { useRef, useState } from 'react';
-import { Trophy, Compass, Bell, LogOut, MapPin, Settings2 } from 'lucide-react';
+import { Trophy, Compass, Bell, LogOut, MapPin, Settings2, BarChart3 } from 'lucide-react';
 import { Header } from './Header';
 import { AlbumGrid } from './AlbumGrid';
 import { MatchMaker } from './MatchMaker';
 import { SettingsScreen } from './SettingsScreen';
+import { StatsScreen } from './StatsScreen';
 import { useApp } from '../context/AppContext';
 import { NotificationsPanel } from './header/NotificationsPanel';
 import { getProfileDisplayName } from '../utils/userProfile';
 
 interface AppShellProps {
-  activeTab: 'album' | 'canjes' | 'config';
-  setActiveTab: (tab: 'album' | 'canjes' | 'config') => void;
+  activeTab: 'album' | 'canjes' | 'stats' | 'config';
+  setActiveTab: (tab: 'album' | 'canjes' | 'stats' | 'config') => void;
   liveAnnouncement: string;
   appAlert: string | null;
 }
@@ -45,15 +46,35 @@ export const AppShell: React.FC<AppShellProps> = ({ activeTab, setActiveTab, liv
         <nav className="flex-1 px-3 py-5 space-y-1 overflow-y-auto" aria-label="Secciones">
           <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-3 pb-2">Secciones</p>
 
-          <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-sky-50 border border-sky-100">
+          <button
+            onClick={() => setActiveTab('album')}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${
+              activeTab === 'album' ? 'bg-sky-50 border border-sky-100 text-sky-700' : 'text-slate-500 hover:bg-slate-50'
+            }`}
+          >
             <Trophy className="w-4 h-4 text-sky-600 flex-shrink-0" />
-            <span className="text-xs font-extrabold text-sky-700">Colección</span>
-          </div>
+            <span className="text-xs font-extrabold">Colección</span>
+          </button>
 
-          <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-500">
+          <button
+            onClick={() => setActiveTab('canjes')}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${
+              activeTab === 'canjes' ? 'bg-sky-50 border border-sky-100 text-sky-700' : 'text-slate-500 hover:bg-slate-50'
+            }`}
+          >
             <Compass className="w-4 h-4 flex-shrink-0" />
             <span className="text-xs font-extrabold">Canjes</span>
-          </div>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('stats')}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${
+              activeTab === 'stats' ? 'bg-cyan-50 border border-cyan-100 text-cyan-700' : 'text-slate-500 hover:bg-slate-50'
+            }`}
+          >
+            <BarChart3 className="w-4 h-4 flex-shrink-0" />
+            <span className="text-xs font-extrabold">Estadísticas</span>
+          </button>
 
           <button
             onClick={() => setActiveTab('config')}
@@ -164,6 +185,10 @@ export const AppShell: React.FC<AppShellProps> = ({ activeTab, setActiveTab, liv
           <main id="app_content_scroller" className="flex-1 overflow-y-auto py-4 lg:py-6" aria-label="Configuración">
             <SettingsScreen />
           </main>
+        ) : activeTab === 'stats' ? (
+          <main id="app_content_scroller" className="flex-1 overflow-y-auto py-4 lg:py-6" aria-label="Estadísticas de colección">
+            <StatsScreen />
+          </main>
         ) : (
           <>
             <main
@@ -186,7 +211,7 @@ export const AppShell: React.FC<AppShellProps> = ({ activeTab, setActiveTab, liv
         )}
 
         {/* Mobile bottom nav (hidden on lg+) */}
-        <nav id="bottom_nav_bar" aria-label="Navegación principal" className="lg:hidden sticky bottom-0 bg-white border-t border-slate-200 shadow-lg px-6 py-2.5 flex justify-around">
+        <nav id="bottom_nav_bar" aria-label="Navegación principal" className="lg:hidden sticky bottom-0 bg-white border-t border-slate-200 shadow-lg px-4 py-2.5 grid grid-cols-4 gap-1">
           <button
             id="tab_nav_album"
             onClick={() => setActiveTab('album')}
@@ -211,6 +236,19 @@ export const AppShell: React.FC<AppShellProps> = ({ activeTab, setActiveTab, liv
           >
             <Compass className="w-5 h-5" />
             <span className="text-[9px] uppercase tracking-wider font-extrabold">Canjes</span>
+          </button>
+
+          <button
+            id="tab_nav_stats"
+            onClick={() => setActiveTab('stats')}
+            aria-current={activeTab === 'stats' ? 'page' : undefined}
+            aria-label="Ir a estadísticas"
+            className={`flex flex-col items-center gap-1 focus:outline-none transition-all active:scale-95 ${
+              activeTab === 'stats' ? 'text-sky-600 font-bold scale-105' : 'text-slate-400 hover:text-slate-600'
+            }`}
+          >
+            <BarChart3 className="w-5 h-5" />
+            <span className="text-[9px] uppercase tracking-wider font-extrabold">Stats</span>
           </button>
 
           <button

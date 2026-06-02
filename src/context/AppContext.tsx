@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { UserProfile, UserStickerInventory, TradeOffer, AppNotification } from '../types';
 import { db, auth, isFirebaseConfigured, handleFirestoreError, OperationType } from '../firebase';
 import { DEFAULT_SEARCH_RADIUS_KM, getProfileDisplayName, normalizeUserProfile } from '../utils/userProfile';
@@ -118,11 +118,16 @@ const INITIAL_MOCK_USERS = [
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [inventory, setInventory] = useState<{ [code: string]: number }>({});
+  const inventoryRef = useRef<{ [code: string]: number }>({});
   const [allUsers, setAllUsers] = useState<{ profile: UserProfile; stickers: { [code: string]: number } }[]>([]);
   const [trades, setTrades] = useState<TradeOffer[]>([]);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [loading, setLoading] = useState(true);
   const [authInProgress, setAuthInProgress] = useState(false);
+
+  useEffect(() => {
+    inventoryRef.current = inventory;
+  }, [inventory]);
 
   const isDemoMode = !isFirebaseConfigured;
 
@@ -396,10 +401,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const updateStickerCount = async (code: string, count: number) => {
     // Keep count protected within safe limits
     const safeCount = Math.max(0, Math.min(99, count));
-    const nextInventory = { ...inventory, [code]: safeCount };
+    const nextInventory = { ...inventoryRef.current, [code]: safeCount };
     if (safeCount === 0) {
       delete nextInventory[code];
     }
+    // Keep the ref in sync immediately so rapid sequential updates (batch add)
+    // never compute from a stale snapshot.
+    inventoryRef.current = nextInventory;
     setInventory(nextInventory);
 
     if (isDemoMode) {

@@ -26,13 +26,14 @@ export const MatchCard: React.FC<MatchCardProps> = ({ match, onProposeTrade, onO
   const handleShareOfferedByWhatsApp = () => {
     const firstName = (match.profile.name || '').trim().split(/\s+/)[0] || '';
     const greeting = firstName ? `Hola ${firstName}!` : 'Hola!';
+    const inviteLine = '¿Todavía no usás RepeClub? Sumate gratis y completá el álbum más fácil 😎⚽ https://repeclub.digital';
 
     let messageBody: string;
     if (match.offered.length === 0) {
-      messageBody = `${greeting} No tengo repes que a vos te falten por ahora, pero seguimos atentos.`;
+      messageBody = `${greeting} No tengo repes que a vos te falten por ahora, pero seguimos atentos.\n\n${inviteLine}`;
     } else {
       const lines = buildStickerReportLinesForCodes(match.offered);
-      messageBody = `${greeting} Estas figus son las repes que tengo yo y que a vos te faltan:\n\n${lines.join('\n')}`;
+      messageBody = `${greeting} Estas figus son las repes que tengo yo y que a vos te faltan:\n\n${lines.join('\n')}\n\n${inviteLine}`;
     }
 
     const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(messageBody)}`;
