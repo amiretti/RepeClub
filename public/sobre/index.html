@@ -15,19 +15,37 @@
     <link rel="stylesheet" href="/content-pages.css" />
   </head>
   <body>
-    <header class="header wrap">
-      <a class="brand" href="/">RepeClub</a>
-      <nav class="nav" aria-label="Navegacion principal">
-        <a href="/sobre/">Sobre</a>
-        <a href="/como-funciona/">Como funciona</a>
-        <a href="/preguntas/">Preguntas</a>
-        <a href="/blog/">Blog</a>
-      </nav>
-      <section class="hero">
-        <h1>Sobre RepeClub</h1>
-        <p>Creamos RepeClub para que completar el album del Mundial 2026 sea mas simple, social y rapido.</p>
-      </section>
+    <a href="#contenido" class="skip-link">Saltar al contenido principal</a>
+
+    <header class="topbar">
+      <div class="topbar-inner wrap">
+        <a class="brand" href="/" aria-label="Inicio RepeClub">
+          <img class="brand-logo" src="/logo-repeclub.svg" alt="Logo de RepeClub" width="38" height="38" />
+          <span class="brand-name">RepeClub</span>
+        </a>
+
+        <div class="top-actions">
+          <a class="cta-mini" href="/app" aria-label="Entrar a la app de RepeClub">Entrar a la app</a>
+
+          <details class="menu">
+            <summary aria-label="Abrir menu de navegacion">
+              <span class="menu-icon" aria-hidden="true"><span></span><span></span><span></span></span>
+            </summary>
+            <nav class="menu-panel" aria-label="Menu principal">
+              <a href="/sobre/" class="is-active" aria-current="page">Sobre</a>
+              <a href="/como-funciona/">Como funciona</a>
+              <a href="/preguntas/">Preguntas</a>
+              <a href="/blog/">Blog</a>
+            </nav>
+          </details>
+        </div>
+      </div>
     </header>
+
+    <section class="hero wrap" id="contenido">
+      <h1>Sobre RepeClub</h1>
+      <p>Creamos RepeClub para que completar el album del Mundial 2026 sea mas simple, social y rapido.</p>
+    </section>
 
     <main class="main wrap">
       <article class="card">
@@ -54,10 +72,46 @@
         <h2>Hecho en Argentina</h2>
         <p>RepeClub esta creada por HARVI y evoluciona en base al uso real de coleccionistas de barrio, grupos de amigos y comunidades que canjean cada semana.</p>
       </article>
+
+      <p class="footer">
+        Hecho con pasion y <span class="heart-beat" role="img" aria-label="amor">💚</span> por <a href="https://harvi.digital/">Harvi</a>.
+      </p>
     </main>
 
-    <footer class="footer wrap">
-      RepeClub · Control y canje de figuritas al toque · <a href="https://harvi.digital/">HARVI</a>
-    </footer>
+    <script>
+      (function () {
+        var menus = document.querySelectorAll('.menu');
+        if (!menus.length) return;
+
+        function closeAllMenus(exceptMenu) {
+          menus.forEach(function (menu) {
+            if (menu !== exceptMenu) menu.removeAttribute('open');
+          });
+        }
+
+        menus.forEach(function (menu) {
+          var links = menu.querySelectorAll('.menu-panel a');
+          menu.addEventListener('toggle', function () {
+            if (menu.open) closeAllMenus(menu);
+          });
+          links.forEach(function (link) {
+            link.addEventListener('click', function () {
+              menu.removeAttribute('open');
+            });
+          });
+        });
+
+        document.addEventListener('click', function (event) {
+          menus.forEach(function (menu) {
+            if (menu.open && !menu.contains(event.target)) menu.removeAttribute('open');
+          });
+        });
+
+        document.addEventListener('keydown', function (event) {
+          if (event.key !== 'Escape') return;
+          closeAllMenus();
+        });
+      })();
+    </script>
   </body>
 </html>

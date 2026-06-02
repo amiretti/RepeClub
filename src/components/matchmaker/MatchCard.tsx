@@ -28,7 +28,7 @@ export const MatchCard: React.FC<MatchCardProps> = ({ match, isFriend, onToggleF
   const handleShareOfferedByWhatsApp = () => {
     const firstName = (match.profile.name || '').trim().split(/\s+/)[0] || '';
     const greeting = firstName ? `Hola ${firstName}!` : 'Hola!';
-    const inviteLine = '¿Todavía no usás RepeClub? Sumate gratis y completá el álbum más fácil 😎⚽ https://repeclub.digital';
+    const inviteLine = '¿Todavía no usás RepeClub? Sumate gratis y completá el álbum más fácil 😎⚽ https://repeclub.digital/app';
 
     let messageBody: string;
     if (match.offered.length === 0) {

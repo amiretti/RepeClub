@@ -306,10 +306,9 @@
         font-size: 1.08rem;
       }
 
-      .nav {
+      .top-actions {
         display: flex;
-        flex-wrap: wrap;
-        justify-content: flex-end;
+        align-items: center;
         gap: 8px;
       }
 
@@ -334,6 +333,77 @@
         background: linear-gradient(135deg, var(--brand) 0%, var(--brand-strong) 100%);
         border-color: rgba(255, 255, 255, 0.24);
         color: #f8fcff;
+      }
+
+      .menu {
+        position: relative;
+      }
+
+      .menu summary {
+        list-style: none;
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        border: 1px solid rgba(145, 198, 255, 0.46);
+        background: rgba(133, 188, 255, 0.08);
+        color: var(--text);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background-color 180ms ease, transform 180ms ease;
+      }
+
+      .menu summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .menu summary:hover {
+        background: rgba(133, 188, 255, 0.16);
+        transform: translateY(-1px);
+      }
+
+      .menu-icon {
+        display: inline-flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .menu-icon span {
+        width: 18px;
+        height: 2px;
+        border-radius: 999px;
+        background: currentColor;
+      }
+
+      .menu-panel {
+        position: absolute;
+        right: 0;
+        top: calc(100% + 10px);
+        width: min(260px, 78vw);
+        padding: 10px;
+        border-radius: 14px;
+        border: 1px solid rgba(145, 198, 255, 0.34);
+        background: rgba(8, 22, 40, 0.95);
+        box-shadow: var(--shadow);
+        display: grid;
+        gap: 6px;
+        z-index: 25;
+      }
+
+      .menu-panel a {
+        text-decoration: none;
+        color: var(--text);
+        font-weight: 600;
+        font-size: 0.94rem;
+        border-radius: 10px;
+        padding: 10px 12px;
+        border: 1px solid transparent;
+      }
+
+      .menu-panel a:hover {
+        border-color: rgba(145, 198, 255, 0.46);
+        background: rgba(133, 188, 255, 0.1);
       }
 
       .hero {
@@ -410,6 +480,7 @@
         display: flex;
         flex-wrap: wrap;
         gap: 12px;
+        width: 100%;
       }
 
       .btn {
@@ -417,6 +488,8 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        flex: 1 1 0;
+        min-width: 0;
         text-decoration: none;
         font-weight: 700;
         font-size: 0.98rem;
@@ -586,6 +659,28 @@
         font-size: 0.9rem;
       }
 
+      .heart-beat {
+        display: inline-block;
+        transform-origin: center;
+        animation: heartbeat 1.2s ease-in-out infinite;
+      }
+
+      @keyframes heartbeat {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        25% {
+          transform: scale(1.18);
+        }
+        42% {
+          transform: scale(1.02);
+        }
+        58% {
+          transform: scale(1.15);
+        }
+      }
+
       a {
         color: #bfe5ff;
       }
@@ -645,21 +740,32 @@
             <span class="brand-name">RepeClub</span>
           </a>
 
-          <nav class="nav" aria-label="Navegacion principal">
-            <a href="/sobre/">Sobre</a>
-            <a href="/como-funciona/">Como funciona</a>
-            <a href="/preguntas/">Preguntas</a>
-            <a href="/blog/">Blog</a>
+          <div class="top-actions">
             <a class="cta-mini" href="/app" aria-label="Entrar a la app de RepeClub">Entrar a la app</a>
-          </nav>
+
+            <details class="menu">
+              <summary aria-label="Abrir menu de navegacion">
+                <span class="menu-icon" aria-hidden="true">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </span>
+              </summary>
+              <nav class="menu-panel" aria-label="Menu principal">
+                <a href="/sobre/">Sobre</a>
+                <a href="/como-funciona/">Como funciona</a>
+                <a href="/preguntas/">Preguntas</a>
+                <a href="/blog/">Blog</a>
+              </nav>
+            </details>
+          </div>
         </div>
       </header>
 
       <section class="hero wrap" id="contenido">
-        <span class="badge reveal-up" aria-label="App gratuita para coleccionistas del Mundial">Gratis - Hecho en Argentina para fanas del album</span>
-        <h1 class="reveal-up delay-1">Las repes no se acumulan. Se convierten en canjes.</h1>
+        <h1 class="reveal-up">Las repes no se acumulan. Se convierten en canjes.</h1>
         <p class="reveal-up delay-2">
-          RepeClub te ayuda a ordenar tu album Panini FIFA World Cup 26, ver tus faltantes en segundos y conectar con gente cerca para cerrar canjes reales.
+          RepeClub te ayuda a completar tu album Panini FIFA World Cup 26: detecta faltantes en segundos, conecta con gente cerca y cierra canjes reales.
         </p>
 
         <div class="hero-actions reveal-up delay-3" role="group" aria-label="Acciones principales">
@@ -741,13 +847,55 @@
         </div>
 
         <p class="footer">
-          Produccion: <a href="https://repeclub.digital/">repeclub.digital</a> - Hecho con pasion por
-          <a href="https://harvi.digital/">HARVI</a>.
+          Produccion: <a href="https://repeclub.digital/">repeclub.digital</a> - Hecho con pasion y
+          <span class="heart-beat" role="img" aria-label="amor">💚</span> por <a href="https://harvi.digital/">Harvi</a>.
         </p>
       </section>
     </main>
 
     <div id="root"></div>
+
+    <script>
+      (function () {
+        var menus = document.querySelectorAll('.menu');
+        if (!menus.length) return;
+
+        function closeAllMenus(exceptMenu) {
+          menus.forEach(function (menu) {
+            if (menu !== exceptMenu) {
+              menu.removeAttribute('open');
+            }
+          });
+        }
+
+        menus.forEach(function (menu) {
+          var links = menu.querySelectorAll('.menu-panel a');
+
+          menu.addEventListener('toggle', function () {
+            if (menu.open) closeAllMenus(menu);
+          });
+
+          links.forEach(function (link) {
+            link.addEventListener('click', function () {
+              menu.removeAttribute('open');
+            });
+          });
+        });
+
+        document.addEventListener('click', function (event) {
+          menus.forEach(function (menu) {
+            if (menu.open && !menu.contains(event.target)) {
+              menu.removeAttribute('open');
+            }
+          });
+        });
+
+        document.addEventListener('keydown', function (event) {
+          if (event.key !== 'Escape') return;
+          closeAllMenus();
+        });
+      })();
+    </script>
 
     <script type="module" src="/src/main.tsx"></script>
   </body>

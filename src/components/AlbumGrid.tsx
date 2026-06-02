@@ -281,7 +281,7 @@ export const AlbumGrid: React.FC = () => {
 
   const handleOpenWhatsApp = (type: 'duplicates' | 'missing') => {
     setWaStatus('idle');
-    const inviteLine = '¿Todavía no usás RepeClub? Sumate gratis y completá el álbum más fácil 😎⚽ https://repeclub.digital';
+    const inviteLine = '¿Todavía no usás RepeClub? Sumate gratis y completá el álbum más fácil 😎⚽ https://repeclub.digital/app';
 
     const reportText = type === 'duplicates'
       ? (duplicateReportLines.length === 0
