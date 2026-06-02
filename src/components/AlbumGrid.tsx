@@ -67,8 +67,6 @@ export const AlbumGrid: React.FC = () => {
   const voiceTimeoutRef = useRef<number | null>(null);
   const voiceSupported = useMemo(() => isVoiceSearchSupported(), []);
   const validCodeSet = useMemo(() => new Set(Object.keys(STICKER_NAMES)), []);
-  const resultsSectionRef = useRef<HTMLDivElement | null>(null);
-  const lastScrolledQueryRef = useRef<string>('');
 
   // Compute album statistics
   const stats = useMemo(() => {
@@ -230,29 +228,6 @@ export const AlbumGrid: React.FC = () => {
       return true;
     });
   }, [stickersToDisplay, inventory, filterMode]);
-
-  // Hacer scroll suave a la zona de resultados cuando una búsqueda devuelve hits.
-  useEffect(() => {
-    const q = searchQuery.trim();
-    if (q === '') {
-      lastScrolledQueryRef.current = '';
-      return;
-    }
-    if (filteredStickers.length === 0) return;
-    if (lastScrolledQueryRef.current === q) return;
-    lastScrolledQueryRef.current = q;
-    const node = resultsSectionRef.current;
-    if (!node) return;
-    // Esperamos un frame para que la grilla ya esté montada y medida.
-    const id = window.setTimeout(() => {
-      try {
-        node.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      } catch {
-        node.scrollIntoView();
-      }
-    }, 80);
-    return () => window.clearTimeout(id);
-  }, [searchQuery, filteredStickers.length]);
 
   // Flat sticker index used by the autocomplete dropdown.
   const stickerIndex = useMemo(() => {
@@ -797,7 +772,7 @@ export const AlbumGrid: React.FC = () => {
       )}
 
       {/* 4. Stickers List Content */}
-      <div ref={resultsSectionRef} className="scroll-mt-4">
+      <div>
         <div className="flex justify-between items-center mb-2 px-1">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider inline-flex items-center gap-1">
             {searchQuery ? (
