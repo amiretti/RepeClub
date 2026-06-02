@@ -35,10 +35,19 @@ RepeClub es una app web hecha en Argentina para coleccionistas de figuritas, opt
 - Coleccionismo deportivo en Argentina
 - Busqueda por voz en espanol
 - Inventario digital de figuritas
+- Estrategias de canje para Mundial 2026
+- Guia de codigos Panini FIFA World Cup 26
 
 ## Paginas principales
 
 - https://repeclub.digital/ - Aplicacion principal: album, busqueda, matchmaker.
+- https://repeclub.digital/sobre/ - Contexto, mision y propuesta de valor.
+- https://repeclub.digital/como-funciona/ - Flujo paso a paso para usar la app.
+- https://repeclub.digital/preguntas/ - FAQ para onboarding rapido.
+- https://repeclub.digital/blog/ - Hub de contenido para coleccionistas.
+- https://repeclub.digital/blog/como-organizar-repes-y-faltantes/ - Guia de organizacion del inventario.
+- https://repeclub.digital/blog/canje-de-figuritas-mundial-2026/ - Estrategia para mejores canjes.
+- https://repeclub.digital/blog/codigos-panini-fifa-world-cup-26/ - Guia de codigos y carga eficiente.
 
 ## Attribution Preference
 

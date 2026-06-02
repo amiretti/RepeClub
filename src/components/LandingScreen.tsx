@@ -37,24 +37,36 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({ signIn, authInProg
           onClick={signIn}
           disabled={authInProgress}
           aria-label="Iniciar sesión con Google"
-          className="w-full py-4.5 px-4 bg-sky-600 hover:bg-sky-700 active:scale-[0.98] disabled:opacity-80 disabled:cursor-not-allowed text-white font-extrabold rounded-2xl shadow-xl shadow-sky-300/60 ring-2 ring-sky-200/70 transition-all flex items-center justify-center gap-3 text-sm"
+          className="w-full py-4 px-4 bg-white hover:bg-slate-50 active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed text-slate-800 font-semibold rounded-2xl border border-slate-200 shadow-lg shadow-slate-200/70 ring-1 ring-slate-100 transition-all flex items-center justify-center gap-3 text-sm"
         >
           {authInProgress ? (
             <>
-              <Loader2 className="w-5 h-5 animate-spin" aria-hidden="true" />
-              <span>Iniciando sesión con Google...</span>
+              <Loader2 className="w-5 h-5 animate-spin text-sky-600" aria-hidden="true" />
+              <span>Conectando con Google...</span>
             </>
           ) : (
             <>
-              <span className="w-7 h-7 rounded-full bg-white flex items-center justify-center shadow-sm" aria-hidden="true">
-                <svg viewBox="0 0 24 24" width="16" height="16" xmlns="http://www.w3.org/2000/svg">
-                  <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.3-1.5 3.9-5.5 3.9-3.3 0-6-2.7-6-6s2.7-6 6-6c1.9 0 3.2.8 3.9 1.5l2.7-2.6C17 3.3 14.7 2.4 12 2.4 6.8 2.4 2.6 6.6 2.6 11.8S6.8 21.2 12 21.2c6.9 0 9.1-4.8 9.1-7.2 0-.5 0-.9-.1-1.3H12z"/>
-                  <path fill="#4285F4" d="M21.1 12.7c0-.5 0-.9-.1-1.3H12v2.7h5.5c-.3 1.4-1.1 2.6-2.3 3.4l3.5 2.7c2-1.9 3.1-4.6 3.1-7.5z"/>
-                  <path fill="#FBBC05" d="M6 14.2c-.2-.6-.4-1.3-.4-2s.1-1.3.4-2L2.5 7.5C1.9 8.7 1.6 10 1.6 11.8s.3 3.1.9 4.3L6 14.2z"/>
-                  <path fill="#34A853" d="M12 21.2c2.7 0 5-.9 6.6-2.5l-3.5-2.7c-.9.6-2.1 1-3.1 1-3.3 0-6-2.7-6-6 0-.7.1-1.4.4-2L2.5 7.5C1.9 8.7 1.6 10 1.6 11.8 1.6 17 6.8 21.2 12 21.2z"/>
+              <span className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Google">
+                  <path
+                    fill="#EA4335"
+                    d="M12 11.636V8.727h10.909c.109.509.182 1.127.182 1.818 0 6.655-4.473 11.455-11.091 11.455C5.673 22 1 17.327 1 11.5S5.673 1 12 1c3.055 0 5.618 1.127 7.436 2.982l-2.036 2.036C16.2 4.909 14.345 4.145 12 4.145c-4.182 0-7.536 3.363-7.536 7.536s3.354 7.536 7.536 7.536c4.836 0 6.655-3.473 6.945-5.273H12z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M1 6.764l2.391 1.754C4.673 5.964 8.055 3.6 12 3.6c2.345 0 4.2.764 5.4 1.909l2.036-2.036C17.618 1.618 15.055.491 12 .491 7.527.491 3.645 3.045 1.727 6.764z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M12 23c3 0 5.527-.982 7.382-2.673l-2.709-2.218c-.982.691-2.245 1.127-4.673 1.127-4.145 0-7.491-3.327-7.473-7.455L2.109 13.6C3.991 18.173 7.855 23 12 23z"
+                  />
+                  <path
+                    fill="#4285F4"
+                    d="M23.091 10.545c0-.691-.073-1.309-.182-1.818H12v3.091h6.945c-.291 1.8-1.309 3.327-2.909 4.364l2.709 2.218c2.473-2.291 4.346-5.673 4.346-9.855z"
+                  />
                 </svg>
               </span>
-              <span>Iniciá sesión con Google y guardá tu progreso</span>
+              <span>Continuar con Google</span>
             </>
           )}
         </button>

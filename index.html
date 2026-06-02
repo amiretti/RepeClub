@@ -178,32 +178,185 @@
     </script>
   </head>
   <body>
-    <div id="root"></div>
+    <style>
+      #prerender-home {
+        font-family: "Segoe UI", "Trebuchet MS", Arial, sans-serif;
+        background: radial-gradient(circle at 0% 0%, #dff0ff 0%, #f4f9ff 46%, #ffffff 100%);
+        color: #0f2640;
+        min-height: 100dvh;
+      }
 
-    <noscript>
-      <main>
-        <h1>RepeClub - Organiza tu album de figuritas Panini Mundial 2026</h1>
-        <p>RepeClub es una app gratuita para coleccionistas de figuritas. Marca tus <strong>repetidas</strong> y <strong>faltantes</strong>, encontra coleccionistas cerca tuyo y canjea las figuritas que te faltan del album <strong>Panini FIFA World Cup 26</strong>.</p>
-        <h2>Que podes hacer con RepeClub</h2>
-        <ul>
-          <li>Llevar tu inventario completo del album del Mundial 2026.</li>
-          <li>Marcar repes y faltantes con un toque.</li>
-          <li>Buscar figuritas por codigo, jugador o seleccion.</li>
-          <li>Buscar por voz en espanol (deci, por ejemplo, "PAN 16").</li>
-          <li>Sumar varias figuritas a la vez con el modo Paquete.</li>
-          <li>Encontrar canjes con personas de tu zona automaticamente.</li>
-          <li>Compartir tu lista de repes y faltantes por WhatsApp.</li>
-        </ul>
-        <h2>Preguntas frecuentes</h2>
-        <h3>Es gratis?</h3>
-        <p>Si, RepeClub es completamente gratuito.</p>
-        <h3>Funciona desde el celular?</h3>
-        <p>Si, esta pensado mobile-first. Entra desde tu navegador a https://repeclub.digital/.</p>
-        <h3>Sirve para el Mundial 2026?</h3>
-        <p>Si, el catalogo del album Panini FIFA World Cup 26 viene precargado.</p>
-        <p>Hecho con pasion por <a href="https://harvi.digital/">HARVI</a>.</p>
-      </main>
-    </noscript>
+      #prerender-home * {
+        box-sizing: border-box;
+      }
+
+      #prerender-home .wrap {
+        width: min(1000px, 92vw);
+        margin: 0 auto;
+      }
+
+      #prerender-home .header {
+        padding: 26px 0 6px;
+      }
+
+      #prerender-home .brand {
+        display: inline-block;
+        font-size: 30px;
+        font-weight: 900;
+        color: #0b3f7a;
+        text-decoration: none;
+      }
+
+      #prerender-home .nav {
+        margin-top: 12px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      #prerender-home .nav a {
+        background: #e8f2ff;
+        border: 1px solid #c8defa;
+        border-radius: 999px;
+        color: #0f5da8;
+        font-weight: 700;
+        font-size: 14px;
+        padding: 8px 14px;
+        text-decoration: none;
+      }
+
+      #prerender-home .hero {
+        padding: 14px 0 4px;
+      }
+
+      #prerender-home .hero h1 {
+        margin: 0 0 10px;
+        font-size: clamp(34px, 6vw, 54px);
+        line-height: 1.02;
+        color: #082948;
+      }
+
+      #prerender-home .hero p {
+        margin: 0;
+        max-width: 760px;
+        font-size: clamp(18px, 2.5vw, 24px);
+        color: #355a83;
+      }
+
+      #prerender-home .main {
+        padding: 14px 0 34px;
+      }
+
+      #prerender-home .grid {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      }
+
+      #prerender-home .card {
+        background: #ffffff;
+        border: 1px solid #d7e7fb;
+        border-radius: 16px;
+        padding: 18px;
+        box-shadow: 0 8px 24px rgba(11, 63, 122, 0.08);
+        margin: 12px 0;
+      }
+
+      #prerender-home .card h2,
+      #prerender-home .card h3 {
+        margin: 0 0 12px;
+        color: #0a3b72;
+      }
+
+      #prerender-home .card p,
+      #prerender-home .card li {
+        font-size: 17px;
+        line-height: 1.55;
+      }
+
+      #prerender-home .meta {
+        color: #4f6f91;
+        font-size: 14px;
+      }
+
+      #prerender-home .footer {
+        margin-top: 20px;
+        padding-top: 16px;
+        border-top: 1px solid #d7e7fb;
+        color: #4f6f91;
+        font-size: 14px;
+      }
+
+      #prerender-home a {
+        color: #0f5da8;
+      }
+
+      @media (max-width: 640px) {
+        #prerender-home .card {
+          padding: 16px;
+        }
+
+        #prerender-home .card p,
+        #prerender-home .card li {
+          font-size: 16px;
+        }
+      }
+    </style>
+
+    <main id="prerender-home" aria-label="Vista prerenderizada de RepeClub">
+      <header class="header wrap">
+        <a class="brand" href="/">RepeClub</a>
+        <nav class="nav" aria-label="Navegacion principal">
+          <a href="/sobre/">Sobre</a>
+          <a href="/como-funciona/">Como funciona</a>
+          <a href="/preguntas/">Preguntas</a>
+          <a href="/blog/">Blog</a>
+        </nav>
+        <section class="hero">
+          <h1>Organiza tu album y canjea tus repes al toque</h1>
+          <p>RepeClub es la app gratis para coleccionistas del Panini FIFA World Cup 26: marca faltantes y repetidas, y encuentra canjes con gente cerca tuyo.</p>
+        </section>
+      </header>
+
+      <section class="main wrap">
+        <article class="card">
+          <h2>Que puedes hacer con RepeClub</h2>
+          <ul>
+            <li>Llevar inventario completo del album del Mundial 2026.</li>
+            <li>Marcar figuritas faltantes y repetidas con un toque.</li>
+            <li>Buscar por codigo, jugador, seleccion o por voz.</li>
+            <li>Agregar varias figuritas juntas con modo paquete.</li>
+            <li>Detectar matches de canje y compartir por WhatsApp.</li>
+          </ul>
+        </article>
+
+        <div class="grid" aria-label="Rutas de contenido">
+          <article class="card">
+            <h3><a href="/sobre/">Sobre RepeClub</a></h3>
+            <p>Vision del producto y para quien esta pensada la app.</p>
+          </article>
+          <article class="card">
+            <h3><a href="/como-funciona/">Como funciona</a></h3>
+            <p>Guia paso a paso desde la carga de figuritas hasta el cierre del canje.</p>
+          </article>
+          <article class="card">
+            <h3><a href="/preguntas/">Preguntas frecuentes</a></h3>
+            <p>Respuestas rapidas sobre uso, sincronizacion, voz y privacidad.</p>
+          </article>
+          <article class="card">
+            <h3><a href="/blog/">Blog de guias</a></h3>
+            <p>Contenido SEO para topic clusters: repes, canjes y codigos.</p>
+          </article>
+        </div>
+
+        <article class="card">
+          <p class="meta">Produccion: https://repeclub.digital/</p>
+          <p class="footer">Hecho con pasion por <a href="https://harvi.digital/">HARVI</a>.</p>
+        </article>
+      </section>
+    </main>
+
+    <div id="root"></div>
 
     <script type="module" src="/src/main.tsx"></script>
   </body>

@@ -10,7 +10,7 @@ import { getStickerNameAndTeam, STICKER_NAMES } from '../stickerData';
 import { Camera, Check, Minus, Search, Mic, Square, Package, Plus } from 'lucide-react';
 import { motion } from 'motion/react';
 import { FlagIcon } from './FlagIcon';
-import { StickerScanner } from './StickerScanner';
+import { StickerScanner } from './StickerScanner.tsx';
 import { BatchAddModal } from './BatchAddModal';
 import {
   interpretVoiceTranscript,
