@@ -44,4 +44,9 @@
     <changefreq>monthly</changefreq>
     <priority>0.72</priority>
   </url>
+  <url>
+    <loc>https://repeclub.digital/app</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
 </urlset>

@@ -9,5 +9,5 @@ http://www.repeclub.digital/*     https://repeclub.digital/:splat    301!
 # Forzar HTTPS en el dominio canonico
 http://repeclub.digital/*         https://repeclub.digital/:splat    301!
 
-# SPA fallback para rutas internas
-/*    /index.html    200
+# SPA fallback solo para la aplicacion
+/app/*    /index.html    200
