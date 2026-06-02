@@ -361,7 +361,7 @@ export const AlbumGrid: React.FC = () => {
         </div>
 
         {/* filter triggers */}
-        <div className="flex bg-slate-100 p-1 rounded-2xl border border-slate-200 self-start">
+        <div className="flex bg-slate-100 p-1 rounded-2xl border border-slate-200 self-end">
           <button
             onClick={() => setFilterMode('all')}
             aria-pressed={filterMode === 'all'}

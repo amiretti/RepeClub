@@ -36,9 +36,11 @@ const ROI_BY_MODE: Record<'normal' | 'zoom' | 'wide', ROIConfig> = {
 };
 
 const AUTO_ATTEMPTS: OCRAttempt[] = [
+  // Tight zoom first: in practice it gives the most reliable read on real stickers.
+  { mode: 'zoom', threshold: 140 },
   { mode: 'normal', threshold: 150 },
   { mode: 'wide', threshold: 145 },
-  { mode: 'zoom', threshold: 140 },
+  { mode: 'zoom', threshold: 130, invert: true },
   { mode: 'wide', threshold: 140, invert: true }
 ];
 

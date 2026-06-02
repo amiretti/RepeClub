@@ -185,8 +185,12 @@ export const StickerScanner: React.FC<StickerScannerProps> = ({ open, onClose, o
             <div className="rounded-2xl border border-emerald-500/40 bg-emerald-500/10 p-3">
               <p className="text-[10px] uppercase tracking-widest text-emerald-200 font-black">Código detectado</p>
               <p className="text-xl font-black text-white mt-1">{detectedCode}</p>
-              <p className="text-[10px] text-emerald-100/80 mt-1">Confianza OCR: {Math.round(confidence)}%</p>
-              {confidence >= MIN_CONFIDENCE_TO_SUGGEST_CONFIRM ? (
+              {confidence > 0 ? (
+                <p className="text-[10px] text-emerald-100/80 mt-1">Confianza OCR: {Math.round(confidence)}%</p>
+              ) : (
+                <p className="text-[10px] text-emerald-100/80 mt-1">Verificado contra la base de figus.</p>
+              )}
+              {confidence >= MIN_CONFIDENCE_TO_SUGGEST_CONFIRM || confidence === 0 ? (
                 <p className="text-[10px] text-emerald-100 mt-1">Lectura confiable. Podés confirmar.</p>
               ) : (
                 <p className="text-[10px] text-amber-200 mt-1">Confianza baja. Revisá el código antes de confirmar.</p>
@@ -198,7 +202,7 @@ export const StickerScanner: React.FC<StickerScannerProps> = ({ open, onClose, o
                 <Check className="w-4 h-4" />
                 Confirmar y sumar
               </button>
-              {confidence < MIN_CONFIDENCE_TO_SUGGEST_CONFIRM && (
+              {confidence > 0 && confidence < MIN_CONFIDENCE_TO_SUGGEST_CONFIRM && (
                 <button
                   onClick={() => handleCaptureAndRead('zoom')}
                   disabled={isProcessing || Boolean(permissionError)}
