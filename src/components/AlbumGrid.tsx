@@ -325,9 +325,9 @@ export const AlbumGrid: React.FC = () => {
       </div>
 
       {/* 2. Search & Filter Bar */}
-      <div className="flex gap-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+      <div className="flex flex-col gap-2">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <label htmlFor="searchInput" className="sr-only">Buscar figuritas por código, nombre o selección</label>
           <input
             id="searchInput"
@@ -335,32 +335,33 @@ export const AlbumGrid: React.FC = () => {
             placeholder="Buscá por código, jugador o selección..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full text-xs focus:text-base font-semibold pl-9 pr-11 py-2.5 bg-white border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-sky-500 shadow-xs placeholder:text-slate-450"
+            className="w-full text-xs focus:text-base font-semibold pl-9 pr-20 py-2.5 bg-white border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-sky-500 shadow-xs placeholder:text-slate-450"
           />
-          {searchQuery.trim() !== '' && (
+          <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
+            {searchQuery.trim() !== '' && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                aria-label="Borrar búsqueda"
+                className="w-7 h-7 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-colors flex items-center justify-center"
+              >
+                <span className="text-sm leading-none font-black">×</span>
+              </button>
+            )}
             <button
               type="button"
-              onClick={() => setSearchQuery('')}
-              aria-label="Borrar búsqueda"
-              className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-colors flex items-center justify-center"
+              onClick={() => setScannerOpen(true)}
+              aria-label="Escanear figurita con cámara"
+              title="Escanear figurita"
+              className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-emerald-500 text-white hover:bg-emerald-400 transition-colors shadow-xs"
             >
-              <span className="text-sm leading-none font-black">×</span>
+              <Camera className="w-4 h-4" />
             </button>
-          )}
+          </div>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setScannerOpen(true)}
-          aria-label="Escanear figurita con cámara"
-          title="Escanear figurita"
-          className="inline-flex items-center justify-center w-11 h-11 rounded-full bg-emerald-500 text-white hover:bg-emerald-400 transition-colors shadow-xs"
-        >
-          <Camera className="w-4 h-4" />
-        </button>
-
         {/* filter triggers */}
-        <div className="flex bg-slate-100 p-1 rounded-2xl border border-slate-200">
+        <div className="flex bg-slate-100 p-1 rounded-2xl border border-slate-200 self-start">
           <button
             onClick={() => setFilterMode('all')}
             aria-pressed={filterMode === 'all'}

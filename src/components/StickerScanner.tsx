@@ -26,7 +26,7 @@ export const StickerScanner: React.FC<StickerScannerProps> = ({ open, onClose, o
   const [rawText, setRawText] = useState('');
   const [manualCode, setManualCode] = useState('');
   const [confidence, setConfidence] = useState<number>(0);
-  const [lastScanMode, setLastScanMode] = useState<'normal' | 'zoom'>('normal');
+  const [lastScanMode, setLastScanMode] = useState<'normal' | 'zoom' | 'auto'>('auto');
 
   const { isProcessing, error, recognizeFromCanvas } = useStickerOCR();
 
@@ -77,7 +77,7 @@ export const StickerScanner: React.FC<StickerScannerProps> = ({ open, onClose, o
     };
   }, [open]);
 
-  const handleCaptureAndRead = async (mode: 'normal' | 'zoom' = 'normal') => {
+  const handleCaptureAndRead = async (mode: 'normal' | 'zoom' | 'auto' = 'auto') => {
     if (!videoRef.current || !canvasRef.current) return;
 
     const video = videoRef.current;
@@ -135,10 +135,14 @@ export const StickerScanner: React.FC<StickerScannerProps> = ({ open, onClose, o
           <div className="relative rounded-2xl overflow-hidden border border-slate-700 bg-black aspect-[3/4]">
             <video ref={videoRef} className="w-full h-full object-cover" playsInline muted autoPlay />
             <div className={`absolute right-[5%] border-2 border-emerald-400 rounded-lg shadow-[0_0_0_2px_rgba(16,185,129,0.25)] ${
-              lastScanMode === 'zoom' ? 'top-[1%] w-[24%] h-[12%]' : 'top-[2%] w-[29%] h-[15%]'
+              lastScanMode === 'zoom'
+                ? 'top-[1%] w-[24%] h-[12%]'
+                : lastScanMode === 'auto'
+                ? 'top-[1%] w-[38%] h-[20%]'
+                : 'top-[2%] w-[29%] h-[15%]'
             }`} />
             <div className="absolute top-[4%] right-[5%] text-[10px] font-bold text-emerald-200 bg-slate-900/70 px-2 py-0.5 rounded">
-              {lastScanMode === 'zoom' ? 'Modo zoom activo' : 'Apuntá al código'}
+              {lastScanMode === 'zoom' ? 'Modo zoom activo' : lastScanMode === 'auto' ? 'Modo auto activo' : 'Apuntá al código'}
             </div>
           </div>
 
@@ -158,12 +162,12 @@ export const StickerScanner: React.FC<StickerScannerProps> = ({ open, onClose, o
           )}
 
           <button
-            onClick={() => handleCaptureAndRead('normal')}
+            onClick={() => handleCaptureAndRead('auto')}
             disabled={isProcessing || Boolean(permissionError)}
             className="w-full py-3 rounded-2xl bg-sky-600 hover:bg-sky-500 disabled:opacity-60 text-white font-black text-sm flex items-center justify-center gap-2"
           >
             {isProcessing ? <ScanLine className="w-4 h-4 animate-pulse" /> : <Camera className="w-4 h-4" />}
-            {isProcessing ? 'Leyendo figurita...' : 'Capturar y leer'}
+            {isProcessing ? 'Leyendo figurita...' : 'Capturar y leer (auto)'}
           </button>
 
           {!detectedCode && rawText && (
