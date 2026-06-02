@@ -1,0 +1,13 @@
+# Forzar dominio canonico (301 permanente) - consolida autoridad SEO en repeclub.digital
+https://repeclub.netlify.app/*    https://repeclub.digital/:splat    301!
+http://repeclub.netlify.app/*     https://repeclub.digital/:splat    301!
+
+# Forzar version sin www
+https://www.repeclub.digital/*    https://repeclub.digital/:splat    301!
+http://www.repeclub.digital/*     https://repeclub.digital/:splat    301!
+
+# Forzar HTTPS en el dominio canonico
+http://repeclub.digital/*         https://repeclub.digital/:splat    301!
+
+# SPA fallback para rutas internas
+/*    /index.html    200

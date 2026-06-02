@@ -1,3 +1,6 @@
+# RepeClub - robots.txt
+# https://repeclub.digital
+
 User-agent: *
 Allow: /
 
@@ -5,4 +8,38 @@ Allow: /
 Disallow: /__/auth/
 Disallow: /__/firebase/
 
-Sitemap: https://repeclub.netlify.app/sitemap.xml
+# AI / LLM crawlers - permitidos explicitamente para citacion con atribucion
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: Amazonbot
+Allow: /
+
+User-agent: Bytespider
+Allow: /
+
+Sitemap: https://repeclub.digital/sitemap.xml

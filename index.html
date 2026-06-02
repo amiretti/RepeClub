@@ -1,60 +1,210 @@
 <!doctype html>
-<html lang="es">
+<html lang="es-AR">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="RepeClub te ayuda a organizar tu album de figuritas, marcar faltantes y repetidas, y encontrar canjes con otros coleccionistas cerca tuyo." />
-    <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#0b3f7a" />
-    <meta name="author" content="CUERVODEV" />
-    <meta name="keywords" content="album de figuritas, canje de figuritas, figuritas repetidas, coleccion de figuritas, repeclub" />
 
-    <link rel="canonical" href="https://repeclub.netlify.app/" />
+    <title>RepeClub | Organiza tu album y canjea las repes del Mundial 2026</title>
+    <meta name="description" content="RepeClub es la app gratis para coleccionistas: marca faltantes y repetidas del album Panini FIFA World Cup 26 y encontra canjes con coleccionistas cerca tuyo. En espanol, hecho en Argentina." />
+    <meta name="keywords" content="album de figuritas, mundial 2026, panini, figuritas repetidas, figuritas faltantes, canje de figuritas, coleccion, repeclub, argentina" />
+    <meta name="author" content="HARVI" />
+    <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
+
+    <link rel="canonical" href="https://repeclub.digital/" />
+    <link rel="alternate" hreflang="es-AR" href="https://repeclub.digital/" />
+    <link rel="alternate" hreflang="es" href="https://repeclub.digital/" />
+    <link rel="alternate" hreflang="x-default" href="https://repeclub.digital/" />
+
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin />
 
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="RepeClub" />
     <meta property="og:locale" content="es_AR" />
-    <meta property="og:title" content="RepeClub | Tu album, tus repes, tus canjes" />
-    <meta property="og:description" content="Gestiona tu coleccion de figuritas, detecta repes y encontra canjes al toque con otros coleccionistas." />
-    <meta property="og:url" content="https://repeclub.netlify.app/" />
-    <meta property="og:image" content="https://repeclub.netlify.app/logo-repeclub.svg" />
+    <meta property="og:title" content="RepeClub | Organiza tu album y canjea tus repes" />
+    <meta property="og:description" content="Marca faltantes y repetidas del album Panini FIFA World Cup 26 y matchea canjes con coleccionistas cerca tuyo. Gratis." />
+    <meta property="og:url" content="https://repeclub.digital/" />
+    <meta property="og:image" content="https://repeclub.digital/og-banner.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="RepeClub - control y canje de figuritas al toque" />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="RepeClub | Tu album, tus repes, tus canjes" />
-    <meta name="twitter:description" content="La forma simple de completar tu album: organiza figuritas y cierra canjes en minutos." />
-    <meta name="twitter:image" content="https://repeclub.netlify.app/logo-repeclub.svg" />
+    <meta name="twitter:title" content="RepeClub | Organiza tu album y canjea tus repes" />
+    <meta name="twitter:description" content="La forma simple de completar tu album: organiza figuritas, detecta repes y cierra canjes en minutos." />
+    <meta name="twitter:image" content="https://repeclub.digital/og-banner.png" />
+    <meta name="twitter:image:alt" content="RepeClub - control y canje de figuritas al toque" />
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/favicon.svg" />
-    <title>RepeClub | Tu album, tus repes, tus canjes</title>
 
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "WebApplication",
-        "name": "RepeClub",
-        "applicationCategory": "SportsApplication",
-        "operatingSystem": "Web",
-        "inLanguage": "es",
-        "url": "https://repeclub.netlify.app/",
-        "description": "Aplicacion web para gestionar albumes de figuritas, detectar repetidas y coordinar canjes entre coleccionistas.",
-        "creator": {
-          "@type": "Person",
-          "name": "CUERVODEV",
-          "url": "https://github.com/amiretti"
-        },
-        "offers": {
-          "@type": "Offer",
-          "price": "0",
-          "priceCurrency": "USD"
-        }
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://repeclub.digital/#organization",
+            "name": "RepeClub",
+            "url": "https://repeclub.digital/",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "https://repeclub.digital/logo-repeclub.svg"
+            },
+            "sameAs": [
+              "https://harvi.digital/",
+              "https://github.com/amiretti"
+            ],
+            "founder": {
+              "@type": "Organization",
+              "name": "HARVI",
+              "url": "https://harvi.digital/"
+            },
+            "areaServed": "AR",
+            "inLanguage": "es-AR"
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://repeclub.digital/#website",
+            "url": "https://repeclub.digital/",
+            "name": "RepeClub",
+            "description": "App para coleccionistas de figuritas: marca repes, faltantes y matchea canjes.",
+            "inLanguage": "es-AR",
+            "publisher": { "@id": "https://repeclub.digital/#organization" }
+          },
+          {
+            "@type": "WebApplication",
+            "@id": "https://repeclub.digital/#app",
+            "name": "RepeClub",
+            "url": "https://repeclub.digital/",
+            "applicationCategory": "SportsApplication",
+            "operatingSystem": "Web, iOS, Android",
+            "browserRequirements": "Requires JavaScript and a modern browser",
+            "inLanguage": "es-AR",
+            "isAccessibleForFree": true,
+            "description": "Aplicacion web para gestionar albumes de figuritas, detectar repetidas y coordinar canjes entre coleccionistas.",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "ARS"
+            },
+            "featureList": [
+              "Inventario de figuritas con repetidas y faltantes",
+              "Busqueda por codigo, jugador o seleccion",
+              "Busqueda por voz en espanol",
+              "Sumar paquete de figuritas a la vez",
+              "Matchmaking de canjes entre coleccionistas",
+              "Compartir reportes por WhatsApp"
+            ],
+            "creator": {
+              "@type": "Person",
+              "name": "CUERVODEV",
+              "url": "https://github.com/amiretti"
+            },
+            "publisher": { "@id": "https://repeclub.digital/#organization" }
+          },
+          {
+            "@type": "FAQPage",
+            "@id": "https://repeclub.digital/#faq",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "Que es RepeClub?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "RepeClub es una aplicacion web gratuita para coleccionistas de figuritas. Te permite organizar tu album, marcar las repetidas y faltantes, y encontrar a otros coleccionistas cerca tuyo para hacer canjes."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Sirve para el album Panini FIFA World Cup 26?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Si. RepeClub esta optimizado para el album Panini del Mundial 2026, con todas las selecciones y figuritas especiales precargadas."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Como intercambio figuritas con otros coleccionistas?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Marca tus repes y tus faltantes en el album. RepeClub usa matchmaking automatico para mostrarte personas cerca tuyo cuyas repes coinciden con lo que necesitas. Despues coordinas el canje por WhatsApp."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "RepeClub es gratis?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Si, RepeClub es gratis. Solo te pide iniciar sesion para guardar tu inventario y mostrarte coincidencias."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Necesito instalar algo?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "No. RepeClub funciona en cualquier navegador moderno desde el celular o la computadora. Si queres, podes agregarlo a la pantalla de inicio como aplicacion."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Como agrego una figurita a mi album?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Podes tocar la figurita en la grilla, escribir su codigo en el buscador, dictarla por voz, o usar el modo Sumar paquete para agregar varias a la vez separadas por espacio."
+                }
+              }
+            ]
+          },
+          {
+            "@type": "HowTo",
+            "@id": "https://repeclub.digital/#howto-canje",
+            "name": "Como canjear figuritas con RepeClub",
+            "description": "Pasos simples para encontrar canjes de figuritas Panini Mundial 2026 cerca tuyo.",
+            "inLanguage": "es-AR",
+            "totalTime": "PT3M",
+            "step": [
+              { "@type": "HowToStep", "position": 1, "name": "Inicia sesion", "text": "Entra a RepeClub para guardar tu inventario." },
+              { "@type": "HowToStep", "position": 2, "name": "Marca tus figuritas", "text": "Toca las que ya tenes y suma las repes con un toque mas." },
+              { "@type": "HowToStep", "position": 3, "name": "Encontra canjes", "text": "RepeClub te muestra coleccionistas cerca tuyo con figuritas que te faltan." },
+              { "@type": "HowToStep", "position": 4, "name": "Coordina por WhatsApp", "text": "Comparti tu reporte y cerra el canje por chat." }
+            ]
+          }
+        ]
       }
     </script>
   </head>
   <body>
-    <noscript>RepeClub requiere JavaScript para funcionar correctamente.</noscript>
     <div id="root"></div>
+
+    <noscript>
+      <main>
+        <h1>RepeClub - Organiza tu album de figuritas Panini Mundial 2026</h1>
+        <p>RepeClub es una app gratuita para coleccionistas de figuritas. Marca tus <strong>repetidas</strong> y <strong>faltantes</strong>, encontra coleccionistas cerca tuyo y canjea las figuritas que te faltan del album <strong>Panini FIFA World Cup 26</strong>.</p>
+        <h2>Que podes hacer con RepeClub</h2>
+        <ul>
+          <li>Llevar tu inventario completo del album del Mundial 2026.</li>
+          <li>Marcar repes y faltantes con un toque.</li>
+          <li>Buscar figuritas por codigo, jugador o seleccion.</li>
+          <li>Buscar por voz en espanol (deci, por ejemplo, "PAN 16").</li>
+          <li>Sumar varias figuritas a la vez con el modo Paquete.</li>
+          <li>Encontrar canjes con personas de tu zona automaticamente.</li>
+          <li>Compartir tu lista de repes y faltantes por WhatsApp.</li>
+        </ul>
+        <h2>Preguntas frecuentes</h2>
+        <h3>Es gratis?</h3>
+        <p>Si, RepeClub es completamente gratuito.</p>
+        <h3>Funciona desde el celular?</h3>
+        <p>Si, esta pensado mobile-first. Entra desde tu navegador a https://repeclub.digital/.</p>
+        <h3>Sirve para el Mundial 2026?</h3>
+        <p>Si, el catalogo del album Panini FIFA World Cup 26 viene precargado.</p>
+        <p>Hecho con pasion por <a href="https://harvi.digital/">HARVI</a>.</p>
+      </main>
+    </noscript>
+
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
