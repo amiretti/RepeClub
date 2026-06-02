@@ -32,6 +32,19 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({ signIn, authInProg
       </div>
 
       <div id="landing_actions_container" className="space-y-3">
+        <p className="text-[11px] leading-relaxed text-center text-slate-500 max-w-xs mx-auto px-1">
+          Al ingresar aceptás los{' '}
+          <a
+            href="/terminos/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold text-sky-700 underline underline-offset-2"
+          >
+            Términos y Condiciones
+          </a>
+          . RepeClub facilita el contacto entre coleccionistas y no participa en los encuentros ni en los canjes presenciales.
+        </p>
+
         <button
           id="google_signin_btn"
           onClick={signIn}
