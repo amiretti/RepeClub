@@ -583,6 +583,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (updatedTrade) {
       const recipientId = updatedTrade.senderId === currentUser.uid ? updatedTrade.receiverId : updatedTrade.senderId;
       const notifId = isDemoMode ? `notif_status_${Date.now()}` : doc(collection(db!, 'notifications')).id;
+      const actionUserName = getProfileDisplayName(currentUser);
       
       let alertMsg = '';
       if (status === 'accepted') alertMsg = '🤝 ¡Te aceptaron la propuesta! Canje listo.';
@@ -593,7 +594,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         id: notifId,
         userId: recipientId,
         title: '📊 Novedades del canje',
-        body: `${senderName} ${status === 'accepted' ? 'aceptó' : status === 'declined' ? 'rechazó' : 'canceló'} el canje.`,
+        body: `${actionUserName} ${status === 'accepted' ? 'aceptó' : status === 'declined' ? 'rechazó' : 'canceló'} el canje.`,
         type: 'trade_update',
         tradeId,
         read: false,

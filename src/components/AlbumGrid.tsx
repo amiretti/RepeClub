@@ -7,9 +7,10 @@ import React, { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import { SPECIALS, TEAMS, getStickersForGroup, TOTAL_STICKER_COUNT } from '../catalog';
 import { getStickerNameAndTeam } from '../stickerData';
-import { Check, Minus, Search } from 'lucide-react';
+import { Camera, Check, Minus, Search } from 'lucide-react';
 import { motion } from 'motion/react';
 import { FlagIcon } from './FlagIcon';
+import { StickerScanner } from './StickerScanner';
 
 const REGIONAL_INDICATOR_START = 0x1f1e6;
 const REGIONAL_INDICATOR_END = 0x1f1ff;
@@ -48,6 +49,8 @@ export const AlbumGrid: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [filterMode, setFilterMode] = useState<'all' | 'missing' | 'duplicates'>('all');
   const [waStatus, setWaStatus] = useState<'idle' | 'opened' | 'blocked'>('idle');
+  const [scannerOpen, setScannerOpen] = useState(false);
+  const [scanFeedback, setScanFeedback] = useState<string | null>(null);
 
   // Compute album statistics
   const stats = useMemo(() => {
@@ -240,6 +243,14 @@ export const AlbumGrid: React.FC = () => {
     window.location.assign(whatsappUrl);
   };
 
+  const handleConfirmScannedCode = async (code: string) => {
+    const currentCount = inventory[code] || 0;
+    await updateStickerCount(code, currentCount + 1);
+    setSearchQuery(code);
+    setScanFeedback(`✅ Sumada ${code}`);
+    window.setTimeout(() => setScanFeedback(null), 2200);
+  };
+
   return (
     <section aria-labelledby="album-grid-title" className="space-y-4 w-full px-4 lg:px-6 pb-8">
       <h2 id="album-grid-title" className="sr-only">Colección de figuritas</h2>
@@ -338,6 +349,16 @@ export const AlbumGrid: React.FC = () => {
           )}
         </div>
 
+        <button
+          type="button"
+          onClick={() => setScannerOpen(true)}
+          aria-label="Escanear figurita con cámara"
+          title="Escanear figurita"
+          className="inline-flex items-center justify-center w-11 h-11 rounded-full bg-emerald-500 text-white hover:bg-emerald-400 transition-colors shadow-xs"
+        >
+          <Camera className="w-4 h-4" />
+        </button>
+
         {/* filter triggers */}
         <div className="flex bg-slate-100 p-1 rounded-2xl border border-slate-200">
           <button
@@ -416,6 +437,12 @@ export const AlbumGrid: React.FC = () => {
                 : `${filteredStickers.length} figus`}
           </span>
         </div>
+
+        {scanFeedback && (
+          <div className="mb-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-[11px] font-semibold text-emerald-700">
+            {scanFeedback}
+          </div>
+        )}
 
         {filteredStickers.length === 0 ? (
           <div className="bg-white border border-dashed border-slate-200 rounded-2xl p-10 text-center text-sm text-slate-400">
@@ -504,6 +531,12 @@ export const AlbumGrid: React.FC = () => {
           💡 <strong>¡Tocá la figu para agregarla a tu colección!</strong> Tocala una vez más para sumar una repe y usá el botón <span className="inline-flex p-0.5 bg-white border border-slate-200 rounded text-xs leading-none"><Minus className="w-2 h-2 inline text-sky-600" /></span> para quitarla (por si te equivocaste o la cambiaste).
         </p>
       </div>
+
+      <StickerScanner
+        open={scannerOpen}
+        onClose={() => setScannerOpen(false)}
+        onConfirmCode={handleConfirmScannedCode}
+      />
 
     </section>
   );
