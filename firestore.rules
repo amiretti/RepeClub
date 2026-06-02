@@ -54,6 +54,15 @@ service cloud.firestore {
           && incoming().stickers is map
           && incoming().updatedAt is string;
       }
+
+      // Per-user friends subcollection
+      match /friends/{friendId} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId)
+          && isValidId(friendId)
+          && incoming().addedAt is string;
+        allow delete: if isOwner(userId);
+      }
     }
 
     // Trades collection
