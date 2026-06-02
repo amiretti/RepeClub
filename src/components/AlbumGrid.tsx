@@ -3,14 +3,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useApp } from '../context/AppContext';
 import { SPECIALS, TEAMS, getStickersForGroup, TOTAL_STICKER_COUNT } from '../catalog';
 import { getStickerNameAndTeam } from '../stickerData';
-import { Camera, Check, Minus, Search } from 'lucide-react';
+import { Camera, Check, Minus, Search, Mic, MicOff, Package, Plus } from 'lucide-react';
 import { motion } from 'motion/react';
 import { FlagIcon } from './FlagIcon';
 import { StickerScanner } from './StickerScanner';
+import { BatchAddModal } from './BatchAddModal';
+import { interpretVoiceTranscript, getSpeechRecognitionCtor, isVoiceSearchSupported } from '../utils/voiceSearch';
 
 const REGIONAL_INDICATOR_START = 0x1f1e6;
 const REGIONAL_INDICATOR_END = 0x1f1ff;
@@ -51,6 +53,13 @@ export const AlbumGrid: React.FC = () => {
   const [waStatus, setWaStatus] = useState<'idle' | 'opened' | 'blocked'>('idle');
   const [scannerOpen, setScannerOpen] = useState(false);
   const [scanFeedback, setScanFeedback] = useState<string | null>(null);
+  const [batchOpen, setBatchOpen] = useState(false);
+  const [autocompleteOpen, setAutocompleteOpen] = useState(false);
+  const [autocompleteIndex, setAutocompleteIndex] = useState(-1);
+  const [voiceListening, setVoiceListening] = useState(false);
+  const [voiceError, setVoiceError] = useState<string | null>(null);
+  const recognitionRef = useRef<any>(null);
+  const voiceSupported = useMemo(() => isVoiceSearchSupported(), []);
 
   // Compute album statistics
   const stats = useMemo(() => {
@@ -213,6 +222,43 @@ export const AlbumGrid: React.FC = () => {
     });
   }, [stickersToDisplay, inventory, filterMode]);
 
+  // Flat sticker index used by the autocomplete dropdown.
+  const stickerIndex = useMemo(() => {
+    const items: { code: string; name: string; team: string; flag: string }[] = [];
+    allGroups.forEach((group) => {
+      getStickersForGroup(group).forEach((code) => {
+        const details = getStickerNameAndTeam(code);
+        items.push({ code, name: details.name, team: details.team, flag: group.flag });
+      });
+    });
+    return items;
+  }, [allGroups]);
+
+  // Top suggestions for the autocomplete dropdown.
+  const autocompleteSuggestions = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (q.length === 0) return [];
+    const scored = stickerIndex
+      .map((item) => {
+        const code = item.code.toLowerCase();
+        const name = item.name.toLowerCase();
+        const team = item.team.toLowerCase();
+        let score = 0;
+        if (code === q) score = 100;
+        else if (code.startsWith(q)) score = 80;
+        else if (code.includes(q)) score = 60;
+        else if (name.startsWith(q)) score = 50;
+        else if (name.includes(q)) score = 30;
+        else if (team.includes(q)) score = 10;
+        return { item, score };
+      })
+      .filter((x) => x.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 6)
+      .map((x) => x.item);
+    return scored;
+  }, [searchQuery, stickerIndex]);
+
   const handleCardClick = (code: string) => {
     const currentCount = inventory[code] || 0;
     updateStickerCount(code, currentCount + 1);
@@ -250,6 +296,99 @@ export const AlbumGrid: React.FC = () => {
     setScanFeedback(`✅ Sumada ${code}`);
     window.setTimeout(() => setScanFeedback(null), 2200);
   };
+
+  const handleBatchConfirm = useCallback(async (codes: string[]) => {
+    // Sumamos secuencialmente, contando duplicados dentro del mismo paquete.
+    const additions: Record<string, number> = {};
+    codes.forEach((c) => {
+      additions[c] = (additions[c] || 0) + 1;
+    });
+    const entries = Object.entries(additions);
+    for (const [code, delta] of entries) {
+      const current = inventory[code] || 0;
+      await updateStickerCount(code, current + delta);
+    }
+    setScanFeedback(`✅ Sumaste ${codes.length} ${codes.length === 1 ? 'figu' : 'figus'} del paquete`);
+    window.setTimeout(() => setScanFeedback(null), 2800);
+  }, [inventory, updateStickerCount]);
+
+  const handleQuickAdd = useCallback(async (code: string) => {
+    const current = inventory[code] || 0;
+    await updateStickerCount(code, current + 1);
+    setScanFeedback(`✅ Sumada ${code}`);
+    window.setTimeout(() => setScanFeedback(null), 2000);
+  }, [inventory, updateStickerCount]);
+
+  const handlePickSuggestion = useCallback((code: string) => {
+    setSearchQuery(code);
+    setAutocompleteOpen(false);
+    setAutocompleteIndex(-1);
+  }, []);
+
+  const handleStartVoice = useCallback(() => {
+    const Ctor = getSpeechRecognitionCtor();
+    if (!Ctor) {
+      setVoiceError('Tu navegador no soporta reconocimiento de voz.');
+      window.setTimeout(() => setVoiceError(null), 3000);
+      return;
+    }
+    if (recognitionRef.current) {
+      try { recognitionRef.current.stop(); } catch { /* noop */ }
+      recognitionRef.current = null;
+    }
+    const recognition = new Ctor();
+    recognition.lang = 'es-AR';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+    recognition.continuous = false;
+    recognition.onresult = (event: any) => {
+      const transcript: string = event.results?.[0]?.[0]?.transcript || '';
+      const interpreted = interpretVoiceTranscript(transcript);
+      if (interpreted) {
+        setSearchQuery(interpreted);
+        setAutocompleteOpen(true);
+      }
+    };
+    recognition.onerror = (event: any) => {
+      if (event?.error === 'not-allowed') {
+        setVoiceError('No diste permiso para usar el micrófono.');
+      } else if (event?.error === 'no-speech') {
+        setVoiceError('No te escuché. Probá de nuevo.');
+      } else {
+        setVoiceError('No pude entenderte. Probá de nuevo.');
+      }
+      window.setTimeout(() => setVoiceError(null), 2500);
+    };
+    recognition.onend = () => {
+      setVoiceListening(false);
+      recognitionRef.current = null;
+    };
+    try {
+      recognition.start();
+      recognitionRef.current = recognition;
+      setVoiceListening(true);
+    } catch {
+      setVoiceListening(false);
+    }
+  }, []);
+
+  const handleStopVoice = useCallback(() => {
+    if (recognitionRef.current) {
+      try { recognitionRef.current.stop(); } catch { /* noop */ }
+      recognitionRef.current = null;
+    }
+    setVoiceListening(false);
+  }, []);
+
+  // Limpieza del reconocimiento al desmontar.
+  useEffect(() => {
+    return () => {
+      if (recognitionRef.current) {
+        try { recognitionRef.current.stop(); } catch { /* noop */ }
+        recognitionRef.current = null;
+      }
+    };
+  }, []);
 
   return (
     <section aria-labelledby="album-grid-title" className="space-y-4 w-full px-4 lg:px-6 pb-8">
@@ -334,20 +473,67 @@ export const AlbumGrid: React.FC = () => {
             type="text"
             placeholder="Buscá por código, jugador o selección..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full text-xs focus:text-base font-semibold pl-9 pr-20 py-2.5 bg-white border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-sky-500 shadow-xs placeholder:text-slate-450"
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setAutocompleteOpen(true);
+              setAutocompleteIndex(-1);
+            }}
+            onFocus={() => setAutocompleteOpen(true)}
+            onBlur={() => window.setTimeout(() => setAutocompleteOpen(false), 150)}
+            onKeyDown={(e) => {
+              if (!autocompleteOpen || autocompleteSuggestions.length === 0) return;
+              if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                setAutocompleteIndex((i) => Math.min(i + 1, autocompleteSuggestions.length - 1));
+              } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                setAutocompleteIndex((i) => Math.max(i - 1, 0));
+              } else if (e.key === 'Enter' && autocompleteIndex >= 0) {
+                e.preventDefault();
+                handlePickSuggestion(autocompleteSuggestions[autocompleteIndex].code);
+              } else if (e.key === 'Escape') {
+                setAutocompleteOpen(false);
+              }
+            }}
+            role="combobox"
+            aria-expanded={autocompleteOpen && autocompleteSuggestions.length > 0}
+            aria-controls="searchAutocompleteList"
+            aria-autocomplete="list"
+            aria-activedescendant={autocompleteIndex >= 0 ? `suggestion-${autocompleteIndex}` : undefined}
+            className="w-full text-xs focus:text-base font-semibold pl-9 pr-24 py-2.5 bg-white border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-sky-500 shadow-xs placeholder:text-slate-450"
           />
           <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
             {searchQuery.trim() !== '' && (
               <button
                 type="button"
-                onClick={() => setSearchQuery('')}
+                onClick={() => {
+                  setSearchQuery('');
+                  setAutocompleteOpen(false);
+                  setAutocompleteIndex(-1);
+                }}
                 aria-label="Borrar búsqueda"
                 className="w-7 h-7 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-colors flex items-center justify-center"
               >
                 <span className="text-sm leading-none font-black">×</span>
               </button>
             )}
+            {voiceSupported && (
+              <button
+                type="button"
+                onClick={voiceListening ? handleStopVoice : handleStartVoice}
+                aria-label={voiceListening ? 'Detener búsqueda por voz' : 'Buscar por voz'}
+                aria-pressed={voiceListening}
+                title={voiceListening ? 'Escuchando…' : 'Buscar por voz'}
+                className={`inline-flex items-center justify-center w-8 h-8 rounded-full transition-colors shadow-xs ${
+                  voiceListening
+                    ? 'bg-rose-500 text-white animate-pulse'
+                    : 'bg-sky-600 text-white hover:bg-sky-500'
+                }`}
+              >
+                {voiceListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+              </button>
+            )}
+            {/* Botón de cámara temporalmente oculto — funcionalidad de OCR pausada.
             <button
               type="button"
               onClick={() => setScannerOpen(true)}
@@ -357,11 +543,82 @@ export const AlbumGrid: React.FC = () => {
             >
               <Camera className="w-4 h-4" />
             </button>
+            */}
           </div>
+
+          {autocompleteOpen && autocompleteSuggestions.length > 0 && (
+            <div
+              id="searchAutocompleteList"
+              role="listbox"
+              className="absolute z-30 left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-2xl shadow-lg overflow-hidden"
+            >
+              {autocompleteSuggestions.map((s, i) => {
+                const count = inventory[s.code] || 0;
+                const isActive = i === autocompleteIndex;
+                return (
+                  <div
+                    key={s.code}
+                    id={`suggestion-${i}`}
+                    role="option"
+                    aria-selected={isActive}
+                    onMouseDown={(e) => {
+                      // Evitar perder el foco antes de procesar el click.
+                      e.preventDefault();
+                    }}
+                    onClick={() => handlePickSuggestion(s.code)}
+                    onMouseEnter={() => setAutocompleteIndex(i)}
+                    className={`flex items-center gap-2 px-3 py-2 cursor-pointer text-xs ${
+                      isActive ? 'bg-sky-50' : 'hover:bg-slate-50'
+                    }`}
+                  >
+                    <FlagIcon emoji={s.flag} label={s.team} />
+                    <span className="font-mono font-bold text-slate-900 w-14 flex-shrink-0">{s.code}</span>
+                    <span className="text-slate-700 truncate flex-1">{s.name}</span>
+                    {count > 0 && (
+                      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0 ${
+                        count > 1 ? 'bg-amber-100 text-amber-800' : 'bg-sky-100 text-sky-800'
+                      }`}>
+                        {count > 1 ? `×${count}` : '✓'}
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        void handleQuickAdd(s.code);
+                      }}
+                      aria-label={`Sumar ${s.code}`}
+                      title="Sumar al álbum"
+                      className="w-7 h-7 rounded-full bg-emerald-500 hover:bg-emerald-400 text-white flex items-center justify-center flex-shrink-0"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
-        {/* filter triggers */}
-        <div className="flex bg-slate-100 p-1 rounded-2xl border border-slate-200 self-end">
+        {voiceError && (
+          <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-semibold text-amber-800" role="alert">
+            {voiceError}
+          </div>
+        )}
+
+        {/* filter triggers + batch add */}
+        <div className="flex items-center justify-between gap-2">
+          <button
+            type="button"
+            onClick={() => setBatchOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-[11px] font-bold transition-colors"
+            title="Agregar varias figus a la vez"
+          >
+            <Package className="w-3.5 h-3.5" />
+            Sumar paquete
+          </button>
+          <div className="flex bg-slate-100 p-1 rounded-2xl border border-slate-200">
           <button
             onClick={() => setFilterMode('all')}
             aria-pressed={filterMode === 'all'}
@@ -389,6 +646,7 @@ export const AlbumGrid: React.FC = () => {
           >
             Repes
           </button>
+        </div>
         </div>
       </div>
 
@@ -537,6 +795,13 @@ export const AlbumGrid: React.FC = () => {
         open={scannerOpen}
         onClose={() => setScannerOpen(false)}
         onConfirmCode={handleConfirmScannedCode}
+      />
+
+      <BatchAddModal
+        open={batchOpen}
+        onClose={() => setBatchOpen(false)}
+        onConfirm={handleBatchConfirm}
+        inventory={inventory}
       />
 
     </section>
