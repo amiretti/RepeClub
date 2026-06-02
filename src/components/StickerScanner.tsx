@@ -55,6 +55,27 @@ export const StickerScanner: React.FC<StickerScannerProps> = ({ open, onClose, o
           videoRef.current.srcObject = stream;
           await videoRef.current.play().catch(() => undefined);
         }
+
+        // Try to enable continuous autofocus / exposure when the device supports it.
+        try {
+          const [track] = stream.getVideoTracks();
+          const capabilities: any = typeof track.getCapabilities === 'function' ? track.getCapabilities() : {};
+          const advanced: MediaTrackConstraintSet[] = [];
+          if (Array.isArray(capabilities.focusMode) && capabilities.focusMode.includes('continuous')) {
+            advanced.push({ focusMode: 'continuous' } as MediaTrackConstraintSet);
+          }
+          if (Array.isArray(capabilities.exposureMode) && capabilities.exposureMode.includes('continuous')) {
+            advanced.push({ exposureMode: 'continuous' } as MediaTrackConstraintSet);
+          }
+          if (Array.isArray(capabilities.whiteBalanceMode) && capabilities.whiteBalanceMode.includes('continuous')) {
+            advanced.push({ whiteBalanceMode: 'continuous' } as MediaTrackConstraintSet);
+          }
+          if (advanced.length > 0) {
+            await track.applyConstraints({ advanced } as MediaTrackConstraints).catch(() => undefined);
+          }
+        } catch {
+          // Best-effort: ignore if not supported.
+        }
       } catch (err: any) {
         if (err?.name === 'NotAllowedError') {
           setPermissionError('No diste permiso para usar la cámara.');
@@ -85,15 +106,33 @@ export const StickerScanner: React.FC<StickerScannerProps> = ({ open, onClose, o
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const captureFrame = () => {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    };
 
-    const result = await recognizeFromCanvas(canvas, mode);
+    // First shot.
+    captureFrame();
+    const firstResult = await recognizeFromCanvas(canvas, mode);
+
+    let bestResult = firstResult;
+
+    // Second shot ~280ms later to give autofocus time to lock; keep the best one.
+    if (!firstResult.code || firstResult.confidence < MIN_CONFIDENCE_TO_SUGGEST_CONFIRM) {
+      await new Promise((resolve) => setTimeout(resolve, 280));
+      captureFrame();
+      const secondResult = await recognizeFromCanvas(canvas, mode);
+
+      const firstScore = firstResult.code ? firstResult.confidence + 1000 : firstResult.confidence;
+      const secondScore = secondResult.code ? secondResult.confidence + 1000 : secondResult.confidence;
+      bestResult = secondScore > firstScore ? secondResult : firstResult;
+    }
+
     setLastScanMode(mode);
-    setDetectedCode(result.code);
-    setRawText(result.rawText);
-    setConfidence(result.confidence);
+    setDetectedCode(bestResult.code);
+    setRawText(bestResult.rawText);
+    setConfidence(bestResult.confidence);
   };
 
   const handleConfirmDetected = async () => {
@@ -115,9 +154,9 @@ export const StickerScanner: React.FC<StickerScannerProps> = ({ open, onClose, o
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[120] bg-slate-950/90 backdrop-blur-[1px] flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-slate-900 border border-slate-700 rounded-3xl overflow-hidden shadow-2xl">
-        <div className="px-4 py-3 border-b border-slate-800 flex items-center justify-between">
+    <div className="fixed inset-0 z-[120] bg-slate-950/90 backdrop-blur-[1px] flex items-start sm:items-center justify-center p-3 sm:p-4 overflow-y-auto">
+      <div className="w-full max-w-md bg-slate-900 border border-slate-700 rounded-3xl shadow-2xl flex flex-col max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100dvh-2rem)]">
+        <div className="px-4 py-3 border-b border-slate-800 flex items-center justify-between flex-shrink-0">
           <div>
             <p className="text-[10px] uppercase tracking-widest text-sky-300 font-black">Escáner</p>
             <h3 className="text-sm font-black text-white">Leé el código del dorso</h3>
@@ -131,14 +170,12 @@ export const StickerScanner: React.FC<StickerScannerProps> = ({ open, onClose, o
           </button>
         </div>
 
-        <div className="p-4 space-y-3">
-          <div className="relative rounded-2xl overflow-hidden border border-slate-700 bg-black aspect-[3/4]">
+        <div className="p-4 space-y-3 overflow-y-auto">
+          <div className="relative rounded-2xl overflow-hidden border border-slate-700 bg-black aspect-[4/3]">
             <video ref={videoRef} className="w-full h-full object-cover" playsInline muted autoPlay />
             <div className={`absolute right-[5%] border-2 border-emerald-400 rounded-lg shadow-[0_0_0_2px_rgba(16,185,129,0.25)] ${
-              lastScanMode === 'zoom'
+              lastScanMode === 'zoom' || lastScanMode === 'auto'
                 ? 'top-[1%] w-[24%] h-[12%]'
-                : lastScanMode === 'auto'
-                ? 'top-[1%] w-[38%] h-[20%]'
                 : 'top-[2%] w-[29%] h-[15%]'
             }`} />
             <div className="absolute top-[4%] right-[5%] text-[10px] font-bold text-emerald-200 bg-slate-900/70 px-2 py-0.5 rounded">
