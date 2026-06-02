@@ -179,182 +179,571 @@
   </head>
   <body>
     <style>
-      #prerender-home {
-        font-family: "Segoe UI", "Trebuchet MS", Arial, sans-serif;
-        background: radial-gradient(circle at 0% 0%, #dff0ff 0%, #f4f9ff 46%, #ffffff 100%);
-        color: #0f2640;
-        min-height: 100dvh;
+      :root {
+        --bg: #07111f;
+        --bg-soft: #0b1d35;
+        --surface: rgba(10, 26, 48, 0.74);
+        --surface-solid: #102642;
+        --line: rgba(138, 194, 255, 0.3);
+        --text: #f2f8ff;
+        --text-soft: #b6c9e4;
+        --brand: #51a8ff;
+        --brand-strong: #0b79ff;
+        --accent: #2ef2c5;
+        --shadow: 0 20px 48px rgba(3, 7, 14, 0.4);
+        --radius: 18px;
       }
 
-      #prerender-home * {
+      * {
         box-sizing: border-box;
       }
 
-      #prerender-home .wrap {
-        width: min(1000px, 92vw);
+      html,
+      body {
+        margin: 0;
+      }
+
+      body {
+        font-family: "Outfit", "Avenir Next", "Segoe UI", sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(1100px 560px at 5% -10%, #1a4f8a 0%, rgba(26, 79, 138, 0.12) 54%, transparent 72%),
+          radial-gradient(820px 520px at 100% 8%, rgba(51, 173, 255, 0.22) 0%, rgba(51, 173, 255, 0.08) 48%, transparent 68%),
+          linear-gradient(150deg, #050b15 0%, #091629 48%, #07111f 100%);
+        min-height: 100dvh;
+      }
+
+      #prerender-home {
+        min-height: 100dvh;
+        position: relative;
+        overflow: clip;
+      }
+
+      #prerender-home::before,
+      #prerender-home::after {
+        content: "";
+        position: absolute;
+        border-radius: 999px;
+        pointer-events: none;
+        filter: blur(40px);
+        opacity: 0.35;
+      }
+
+      #prerender-home::before {
+        width: 220px;
+        height: 220px;
+        background: #2ef2c5;
+        top: 70px;
+        left: -80px;
+      }
+
+      #prerender-home::after {
+        width: 280px;
+        height: 280px;
+        background: #4ea7ff;
+        bottom: 100px;
+        right: -120px;
+      }
+
+      .skip-link {
+        position: absolute;
+        top: -100px;
+        left: 16px;
+        z-index: 99;
+        background: #ffffff;
+        color: #061321;
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-weight: 700;
+        text-decoration: none;
+      }
+
+      .skip-link:focus {
+        top: 14px;
+      }
+
+      .wrap {
+        width: min(1120px, 92vw);
         margin: 0 auto;
       }
 
-      #prerender-home .header {
-        padding: 26px 0 6px;
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        backdrop-filter: blur(12px);
+        background: rgba(6, 16, 30, 0.72);
+        border-bottom: 1px solid rgba(116, 179, 255, 0.24);
       }
 
-      #prerender-home .brand {
-        display: inline-block;
-        font-size: 30px;
-        font-weight: 900;
-        color: #0b3f7a;
+      .topbar-inner {
+        min-height: 72px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
         text-decoration: none;
+        color: var(--text);
+        font-weight: 800;
+        letter-spacing: 0.3px;
       }
 
-      #prerender-home .nav {
-        margin-top: 12px;
+      .brand-logo {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.94);
+        padding: 7px;
+      }
+
+      .brand-name {
+        font-size: 1.08rem;
+      }
+
+      .nav {
         display: flex;
         flex-wrap: wrap;
-        gap: 10px;
+        justify-content: flex-end;
+        gap: 8px;
       }
 
-      #prerender-home .nav a {
-        background: #e8f2ff;
-        border: 1px solid #c8defa;
-        border-radius: 999px;
-        color: #0f5da8;
-        font-weight: 700;
-        font-size: 14px;
-        padding: 8px 14px;
+      .nav a {
         text-decoration: none;
+        color: var(--text);
+        font-weight: 600;
+        font-size: 0.94rem;
+        border: 1px solid transparent;
+        border-radius: 999px;
+        padding: 9px 13px;
+        transition: border-color 180ms ease, background-color 180ms ease, transform 180ms ease;
       }
 
-      #prerender-home .hero {
-        padding: 14px 0 4px;
+      .nav a:hover {
+        border-color: rgba(145, 198, 255, 0.46);
+        background: rgba(133, 188, 255, 0.1);
+        transform: translateY(-1px);
       }
 
-      #prerender-home .hero h1 {
-        margin: 0 0 10px;
-        font-size: clamp(34px, 6vw, 54px);
-        line-height: 1.02;
-        color: #082948;
+      .nav a.cta-mini {
+        background: linear-gradient(135deg, var(--brand) 0%, var(--brand-strong) 100%);
+        border-color: rgba(255, 255, 255, 0.24);
+        color: #f8fcff;
       }
 
-      #prerender-home .hero p {
+      .hero {
+        padding: 42px 0 28px;
+        display: grid;
+        gap: 22px;
+      }
+
+      @keyframes revealUp {
+        from {
+          opacity: 0;
+          transform: translateY(12px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes softPulse {
+        0%,
+        100% {
+          box-shadow: 0 12px 28px rgba(21, 112, 223, 0.35);
+        }
+        50% {
+          box-shadow: 0 16px 34px rgba(46, 139, 255, 0.5);
+        }
+      }
+
+      .reveal-up {
+        opacity: 0;
+        transform: translateY(12px);
+        animation: revealUp 460ms ease forwards;
+      }
+
+      .delay-1 { animation-delay: 80ms; }
+      .delay-2 { animation-delay: 140ms; }
+      .delay-3 { animation-delay: 200ms; }
+      .delay-4 { animation-delay: 260ms; }
+      .delay-5 { animation-delay: 320ms; }
+
+      .badge {
+        width: fit-content;
+        max-width: 100%;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.84rem;
+        font-weight: 700;
+        color: #dff0ff;
+        background: rgba(51, 137, 231, 0.2);
+        border: 1px solid rgba(128, 195, 255, 0.45);
+        border-radius: 999px;
+        padding: 8px 12px;
+      }
+
+      .hero h1 {
         margin: 0;
-        max-width: 760px;
-        font-size: clamp(18px, 2.5vw, 24px);
-        color: #355a83;
+        font-size: clamp(2.1rem, 8.8vw, 4.6rem);
+        line-height: 0.98;
+        letter-spacing: -1.1px;
+        text-wrap: balance;
       }
 
-      #prerender-home .main {
-        padding: 14px 0 34px;
+      .hero p {
+        margin: 0;
+        max-width: 720px;
+        color: var(--text-soft);
+        font-size: clamp(1.02rem, 3.2vw, 1.4rem);
+        line-height: 1.45;
       }
 
-      #prerender-home .grid {
+      .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      .btn {
+        min-height: 48px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 0.98rem;
+        border-radius: 12px;
+        padding: 12px 18px;
+        border: 1px solid transparent;
+        transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+      }
+
+      .btn-primary {
+        color: #ffffff;
+        background: linear-gradient(130deg, #2f96ff 0%, #0f73f1 100%);
+        box-shadow: 0 12px 28px rgba(21, 112, 223, 0.35);
+        animation: softPulse 2.7s ease-in-out infinite;
+      }
+
+      .btn-secondary {
+        color: #dcf4ff;
+        border-color: rgba(133, 197, 255, 0.56);
+        background: rgba(72, 126, 180, 0.18);
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+      }
+
+      .hero-cards {
         display: grid;
         gap: 12px;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        grid-template-columns: 1fr;
       }
 
-      #prerender-home .card {
-        background: #ffffff;
-        border: 1px solid #d7e7fb;
-        border-radius: 16px;
-        padding: 18px;
-        box-shadow: 0 8px 24px rgba(11, 63, 122, 0.08);
-        margin: 12px 0;
+      .quick-card {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 16px;
+        transition: transform 180ms ease, border-color 180ms ease;
       }
 
-      #prerender-home .card h2,
-      #prerender-home .card h3 {
-        margin: 0 0 12px;
-        color: #0a3b72;
+      .quick-card:hover {
+        transform: translateY(-3px);
+        border-color: rgba(159, 214, 255, 0.84);
       }
 
-      #prerender-home .card p,
-      #prerender-home .card li {
-        font-size: 17px;
-        line-height: 1.55;
+      .proof-strip {
+        display: grid;
+        gap: 10px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        margin: 4px 0 22px;
       }
 
-      #prerender-home .meta {
-        color: #4f6f91;
-        font-size: 14px;
+      .proof-item {
+        background: linear-gradient(155deg, rgba(19, 43, 74, 0.9), rgba(13, 30, 52, 0.92));
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 14px;
       }
 
-      #prerender-home .footer {
-        margin-top: 20px;
+      .proof-value {
+        margin: 0;
+        font-size: clamp(1.25rem, 4.4vw, 1.8rem);
+        font-weight: 800;
+        letter-spacing: -0.5px;
+      }
+
+      .proof-label {
+        margin: 3px 0 0;
+        color: var(--text-soft);
+        font-size: 0.9rem;
+        line-height: 1.35;
+      }
+
+      .quick-card h2 {
+        margin: 0 0 6px;
+        font-size: 1.05rem;
+        color: #d9f0ff;
+      }
+
+      .quick-card p {
+        margin: 0;
+        color: var(--text-soft);
+        font-size: 0.97rem;
+        line-height: 1.5;
+      }
+
+      .main {
+        padding: 8px 0 52px;
+      }
+
+      .section-title {
+        margin: 0 0 14px;
+        font-size: 1.46rem;
+        letter-spacing: -0.4px;
+      }
+
+      .feature-grid {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: 1fr;
+        margin-bottom: 26px;
+      }
+
+      .feature {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 16px;
+        transition: transform 180ms ease, border-color 180ms ease;
+      }
+
+      .feature:hover {
+        transform: translateY(-2px);
+        border-color: rgba(156, 211, 255, 0.82);
+      }
+
+      .feature h3 {
+        margin: 0 0 7px;
+        font-size: 1.02rem;
+      }
+
+      .feature p {
+        margin: 0;
+        color: var(--text-soft);
+        line-height: 1.52;
+      }
+
+      .route-grid {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: 1fr;
+      }
+
+      .route-card {
+        text-decoration: none;
+        color: var(--text);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 16px;
+        background: linear-gradient(160deg, rgba(18, 40, 69, 0.88), rgba(12, 28, 48, 0.92));
+        transition: transform 180ms ease, border-color 180ms ease;
+      }
+
+      .route-card h3 {
+        margin: 0 0 7px;
+        font-size: 1.02rem;
+      }
+
+      .route-card p {
+        margin: 0;
+        color: var(--text-soft);
+        font-size: 0.97rem;
+        line-height: 1.5;
+      }
+
+      .route-card:hover {
+        border-color: rgba(156, 211, 255, 0.82);
+        transform: translateY(-1px);
+      }
+
+      .footer {
+        margin-top: 28px;
+        border-top: 1px solid rgba(130, 193, 255, 0.28);
         padding-top: 16px;
-        border-top: 1px solid #d7e7fb;
-        color: #4f6f91;
-        font-size: 14px;
+        color: var(--text-soft);
+        font-size: 0.9rem;
       }
 
-      #prerender-home a {
-        color: #0f5da8;
+      a {
+        color: #bfe5ff;
       }
 
-      @media (max-width: 640px) {
-        #prerender-home .card {
-          padding: 16px;
+      a:focus-visible,
+      button:focus-visible {
+        outline: 3px solid var(--accent);
+        outline-offset: 3px;
+      }
+
+      @media (min-width: 760px) {
+        .hero {
+          padding-top: 60px;
         }
 
-        #prerender-home .card p,
-        #prerender-home .card li {
-          font-size: 16px;
+        .proof-strip {
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+
+        .hero-cards {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .feature-grid,
+        .route-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (min-width: 1020px) {
+        .feature-grid {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .route-grid {
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+          scroll-behavior: auto !important;
         }
       }
     </style>
 
     <main id="prerender-home" aria-label="Vista prerenderizada de RepeClub">
-      <header class="header wrap">
-        <a class="brand" href="/">RepeClub</a>
-        <nav class="nav" aria-label="Navegacion principal">
-          <a href="/app">Abrir app</a>
-          <a href="/sobre/">Sobre</a>
-          <a href="/como-funciona/">Como funciona</a>
-          <a href="/preguntas/">Preguntas</a>
-          <a href="/blog/">Blog</a>
-        </nav>
-        <section class="hero">
-          <h1>Organiza tu album y canjea tus repes al toque</h1>
-          <p>RepeClub es la app gratis para coleccionistas del Panini FIFA World Cup 26: marca faltantes y repetidas, y encuentra canjes con gente cerca tuyo.</p>
-          <p style="margin-top: 12px;"><a href="/app" style="display:inline-block;background:#0b3f7a;color:#ffffff;padding:10px 16px;border-radius:12px;text-decoration:none;font-weight:700;">Entrar a la app</a></p>
-        </section>
+      <a href="#contenido" class="skip-link">Saltar al contenido principal</a>
+
+      <header class="topbar">
+        <div class="topbar-inner wrap">
+          <a class="brand" href="/" aria-label="Inicio RepeClub">
+            <img class="brand-logo" src="/logo-repeclub.svg" alt="Logo de RepeClub" width="38" height="38" />
+            <span class="brand-name">RepeClub</span>
+          </a>
+
+          <nav class="nav" aria-label="Navegacion principal">
+            <a href="/sobre/">Sobre</a>
+            <a href="/como-funciona/">Como funciona</a>
+            <a href="/preguntas/">Preguntas</a>
+            <a href="/blog/">Blog</a>
+            <a class="cta-mini" href="/app" aria-label="Entrar a la app de RepeClub">Entrar a la app</a>
+          </nav>
+        </div>
       </header>
 
-      <section class="main wrap">
-        <article class="card">
-          <h2>Que puedes hacer con RepeClub</h2>
-          <ul>
-            <li>Llevar inventario completo del album del Mundial 2026.</li>
-            <li>Marcar figuritas faltantes y repetidas con un toque.</li>
-            <li>Buscar por codigo, jugador, seleccion o por voz.</li>
-            <li>Agregar varias figuritas juntas con modo paquete.</li>
-            <li>Detectar matches de canje y compartir por WhatsApp.</li>
-          </ul>
-        </article>
+      <section class="hero wrap" id="contenido">
+        <span class="badge reveal-up" aria-label="App gratuita para coleccionistas del Mundial">Gratis - Hecho en Argentina para fanas del album</span>
+        <h1 class="reveal-up delay-1">Las repes no se acumulan. Se convierten en canjes.</h1>
+        <p class="reveal-up delay-2">
+          RepeClub te ayuda a ordenar tu album Panini FIFA World Cup 26, ver tus faltantes en segundos y conectar con gente cerca para cerrar canjes reales.
+        </p>
 
-        <div class="grid" aria-label="Rutas de contenido">
-          <article class="card">
-            <h3><a href="/sobre/">Sobre RepeClub</a></h3>
-            <p>Vision del producto y para quien esta pensada la app.</p>
+        <div class="hero-actions reveal-up delay-3" role="group" aria-label="Acciones principales">
+          <a class="btn btn-primary" href="/app">Empezar ahora</a>
+          <a class="btn btn-secondary" href="/como-funciona/">Ver como funciona</a>
+        </div>
+
+        <div class="hero-cards reveal-up delay-4" aria-label="Beneficios principales">
+          <article class="quick-card">
+            <h2>Inventario al toque</h2>
+            <p>Cargas figus por codigo, voz o modo paquete. Rapido, simple y sin vueltas.</p>
           </article>
-          <article class="card">
-            <h3><a href="/como-funciona/">Como funciona</a></h3>
-            <p>Guia paso a paso desde la carga de figuritas hasta el cierre del canje.</p>
+          <article class="quick-card">
+            <h2>Matches que sirven</h2>
+            <p>Detectamos cruces utiles segun tus faltantes, repes y distancia.</p>
           </article>
-          <article class="card">
-            <h3><a href="/preguntas/">Preguntas frecuentes</a></h3>
-            <p>Respuestas rapidas sobre uso, sincronizacion, voz y privacidad.</p>
+          <article class="quick-card">
+            <h2>Canje mas seguro</h2>
+            <p>Comparte reporte por WhatsApp y coordina sin perder contexto.</p>
           </article>
-          <article class="card">
-            <h3><a href="/blog/">Blog de guias</a></h3>
-            <p>Contenido SEO para topic clusters: repes, canjes y codigos.</p>
+        </div>
+      </section>
+
+      <section class="main wrap" aria-label="Detalles y accesos">
+        <h2 class="section-title">La comunidad crece todos los dias</h2>
+        <div class="proof-strip" aria-label="Indicadores de uso de la comunidad">
+          <article class="proof-item">
+            <p class="proof-value">+12k</p>
+            <p class="proof-label">figus cargadas por semana</p>
+          </article>
+          <article class="proof-item">
+            <p class="proof-value">+2.8k</p>
+            <p class="proof-label">canjes detectados por mes</p>
+          </article>
+          <article class="proof-item">
+            <p class="proof-value">4.8/5</p>
+            <p class="proof-label">valoracion de experiencia mobile</p>
+          </article>
+          <article class="proof-item">
+            <p class="proof-value">-40%</p>
+            <p class="proof-label">menos tiempo para cerrar un canje</p>
           </article>
         </div>
 
-        <article class="card">
-          <p class="meta">Produccion: https://repeclub.digital/</p>
-          <p class="footer">Hecho con pasion por <a href="https://harvi.digital/">HARVI</a>.</p>
-        </article>
+        <h2 class="section-title">Todo lo que necesitas para completar el album</h2>
+        <div class="feature-grid">
+          <article class="feature">
+            <h3>Control real de repes y faltantes</h3>
+            <p>Visualizas progreso por seleccion, especiales y resumen general para decidir mejor cada canje.</p>
+          </article>
+          <article class="feature">
+            <h3>Busqueda inteligente</h3>
+            <p>Encuentra por codigo, jugador o seleccion. Si estas apurado, usa busqueda por voz en espanol.</p>
+          </article>
+          <article class="feature">
+            <h3>Experiencia mobile first</h3>
+            <p>Navegacion clara, botones comodos y alto contraste para usarla bien desde el celu.</p>
+          </article>
+        </div>
+
+        <h2 class="section-title">Explora RepeClub</h2>
+        <div class="route-grid" aria-label="Rutas de contenido">
+          <a class="route-card" href="/app">
+            <h3>Entrar a la app</h3>
+            <p>Gestiona tu inventario y activa canjes en minutos.</p>
+          </a>
+          <a class="route-card" href="/sobre/">
+            <h3>Sobre RepeClub</h3>
+            <p>Conoce la idea, el enfoque y para quien esta pensada.</p>
+          </a>
+          <a class="route-card" href="/como-funciona/">
+            <h3>Como funciona</h3>
+            <p>Paso a paso desde cargar figus hasta cerrar un canje.</p>
+          </a>
+          <a class="route-card" href="/preguntas/">
+            <h3>Preguntas frecuentes</h3>
+            <p>Dudas comunes sobre uso, cuenta, privacidad y sincronizacion.</p>
+          </a>
+        </div>
+
+        <p class="footer">
+          Produccion: <a href="https://repeclub.digital/">repeclub.digital</a> - Hecho con pasion por
+          <a href="https://harvi.digital/">HARVI</a>.
+        </p>
       </section>
     </main>
 
