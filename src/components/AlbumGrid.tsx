@@ -6,13 +6,18 @@
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useApp } from '../context/AppContext';
 import { SPECIALS, TEAMS, getStickersForGroup, TOTAL_STICKER_COUNT } from '../catalog';
-import { getStickerNameAndTeam } from '../stickerData';
-import { Camera, Check, Minus, Search, Mic, MicOff, Package, Plus } from 'lucide-react';
+import { getStickerNameAndTeam, STICKER_NAMES } from '../stickerData';
+import { Camera, Check, Minus, Search, Mic, Square, Package, Plus } from 'lucide-react';
 import { motion } from 'motion/react';
 import { FlagIcon } from './FlagIcon';
 import { StickerScanner } from './StickerScanner';
 import { BatchAddModal } from './BatchAddModal';
-import { interpretVoiceTranscript, getSpeechRecognitionCtor, isVoiceSearchSupported } from '../utils/voiceSearch';
+import {
+  interpretVoiceTranscript,
+  getSpeechRecognitionCtor,
+  isVoiceSearchSupported,
+  matchVoiceToStickerCode
+} from '../utils/voiceSearch';
 
 const REGIONAL_INDICATOR_START = 0x1f1e6;
 const REGIONAL_INDICATOR_END = 0x1f1ff;
@@ -59,7 +64,11 @@ export const AlbumGrid: React.FC = () => {
   const [voiceListening, setVoiceListening] = useState(false);
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const recognitionRef = useRef<any>(null);
+  const voiceTimeoutRef = useRef<number | null>(null);
   const voiceSupported = useMemo(() => isVoiceSearchSupported(), []);
+  const validCodeSet = useMemo(() => new Set(Object.keys(STICKER_NAMES)), []);
+  const resultsSectionRef = useRef<HTMLDivElement | null>(null);
+  const lastScrolledQueryRef = useRef<string>('');
 
   // Compute album statistics
   const stats = useMemo(() => {
@@ -222,6 +231,29 @@ export const AlbumGrid: React.FC = () => {
     });
   }, [stickersToDisplay, inventory, filterMode]);
 
+  // Hacer scroll suave a la zona de resultados cuando una búsqueda devuelve hits.
+  useEffect(() => {
+    const q = searchQuery.trim();
+    if (q === '') {
+      lastScrolledQueryRef.current = '';
+      return;
+    }
+    if (filteredStickers.length === 0) return;
+    if (lastScrolledQueryRef.current === q) return;
+    lastScrolledQueryRef.current = q;
+    const node = resultsSectionRef.current;
+    if (!node) return;
+    // Esperamos un frame para que la grilla ya esté montada y medida.
+    const id = window.setTimeout(() => {
+      try {
+        node.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } catch {
+        node.scrollIntoView();
+      }
+    }, 80);
+    return () => window.clearTimeout(id);
+  }, [searchQuery, filteredStickers.length]);
+
   // Flat sticker index used by the autocomplete dropdown.
   const stickerIndex = useMemo(() => {
     const items: { code: string; name: string; team: string; flag: string }[] = [];
@@ -336,20 +368,68 @@ export const AlbumGrid: React.FC = () => {
       try { recognitionRef.current.stop(); } catch { /* noop */ }
       recognitionRef.current = null;
     }
+    if (voiceTimeoutRef.current !== null) {
+      window.clearTimeout(voiceTimeoutRef.current);
+      voiceTimeoutRef.current = null;
+    }
     const recognition = new Ctor();
     recognition.lang = 'es-AR';
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
-    recognition.continuous = false;
+    // Modo continuo + interim: evita que Chrome cierre el mic con "no-speech"
+    // ante prefijos cortos o consonantes débiles (ej. HAI, AYE).
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 5;
+
+    let processed = false;
+    const finishWithMatch = (alternatives: string[]) => {
+      if (processed) return;
+      processed = true;
+      if (voiceTimeoutRef.current !== null) {
+        window.clearTimeout(voiceTimeoutRef.current);
+        voiceTimeoutRef.current = null;
+      }
+      const match = matchVoiceToStickerCode(alternatives, validCodeSet);
+      if (match.code) {
+        setSearchQuery(match.code);
+      } else {
+        const fallback = match.query || interpretVoiceTranscript(alternatives[0]);
+        setSearchQuery(fallback);
+      }
+      setAutocompleteOpen(true);
+      try { recognition.stop(); } catch { /* noop */ }
+    };
+
     recognition.onresult = (event: any) => {
-      const transcript: string = event.results?.[0]?.[0]?.transcript || '';
-      const interpreted = interpretVoiceTranscript(transcript);
-      if (interpreted) {
-        setSearchQuery(interpreted);
-        setAutocompleteOpen(true);
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const result = event.results[i];
+        if (!result) continue;
+        const alternatives: string[] = [];
+        for (let j = 0; j < result.length; j++) {
+          const t = result[j]?.transcript;
+          if (typeof t === 'string' && t.trim().length > 0) {
+            alternatives.push(t.trim());
+          }
+        }
+        if (alternatives.length === 0) continue;
+        // Atajo para resultados interim: si ya matchean un código válido,
+        // cortamos el mic al instante para no dejarlo abierto al ruido.
+        if (!result.isFinal) {
+          const earlyMatch = matchVoiceToStickerCode(alternatives, validCodeSet);
+          if (earlyMatch.code && earlyMatch.confidence === 'exact') {
+            finishWithMatch(alternatives);
+            return;
+          }
+          continue;
+        }
+        finishWithMatch(alternatives);
+        return;
       }
     };
     recognition.onerror = (event: any) => {
+      if (voiceTimeoutRef.current !== null) {
+        window.clearTimeout(voiceTimeoutRef.current);
+        voiceTimeoutRef.current = null;
+      }
       if (event?.error === 'not-allowed') {
         setVoiceError('No diste permiso para usar el micrófono.');
       } else if (event?.error === 'no-speech') {
@@ -360,6 +440,10 @@ export const AlbumGrid: React.FC = () => {
       window.setTimeout(() => setVoiceError(null), 2500);
     };
     recognition.onend = () => {
+      if (voiceTimeoutRef.current !== null) {
+        window.clearTimeout(voiceTimeoutRef.current);
+        voiceTimeoutRef.current = null;
+      }
       setVoiceListening(false);
       recognitionRef.current = null;
     };
@@ -367,12 +451,23 @@ export const AlbumGrid: React.FC = () => {
       recognition.start();
       recognitionRef.current = recognition;
       setVoiceListening(true);
+      // Cortamos a los 5 segundos pase lo que pase para evitar que entre ruido
+      // o palabras posteriores al código.
+      voiceTimeoutRef.current = window.setTimeout(() => {
+        if (!processed) {
+          try { recognition.stop(); } catch { /* noop */ }
+        }
+      }, 5000);
     } catch {
       setVoiceListening(false);
     }
-  }, []);
+  }, [validCodeSet]);
 
   const handleStopVoice = useCallback(() => {
+    if (voiceTimeoutRef.current !== null) {
+      window.clearTimeout(voiceTimeoutRef.current);
+      voiceTimeoutRef.current = null;
+    }
     if (recognitionRef.current) {
       try { recognitionRef.current.stop(); } catch { /* noop */ }
       recognitionRef.current = null;
@@ -500,9 +595,9 @@ export const AlbumGrid: React.FC = () => {
             aria-controls="searchAutocompleteList"
             aria-autocomplete="list"
             aria-activedescendant={autocompleteIndex >= 0 ? `suggestion-${autocompleteIndex}` : undefined}
-            className="w-full text-xs focus:text-base font-semibold pl-9 pr-24 py-2.5 bg-white border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-sky-500 shadow-xs placeholder:text-slate-450"
+            className="w-full text-xs focus:text-base font-semibold pl-9 pr-20 py-2.5 bg-white border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-sky-500 shadow-xs placeholder:text-slate-450"
           />
-          <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
+          <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
             {searchQuery.trim() !== '' && (
               <button
                 type="button"
@@ -521,16 +616,26 @@ export const AlbumGrid: React.FC = () => {
               <button
                 type="button"
                 onClick={voiceListening ? handleStopVoice : handleStartVoice}
-                aria-label={voiceListening ? 'Detener búsqueda por voz' : 'Buscar por voz'}
+                aria-label={voiceListening ? 'Detener grabación de voz' : 'Buscar por voz'}
                 aria-pressed={voiceListening}
-                title={voiceListening ? 'Escuchando…' : 'Buscar por voz'}
-                className={`inline-flex items-center justify-center w-8 h-8 rounded-full transition-colors shadow-xs ${
+                title={voiceListening ? 'Detener' : 'Buscar por voz'}
+                className={`relative inline-flex items-center justify-center w-7 h-7 rounded-full transition-colors shadow-xs ${
                   voiceListening
-                    ? 'bg-rose-500 text-white animate-pulse'
+                    ? 'bg-rose-600 text-white'
                     : 'bg-sky-600 text-white hover:bg-sky-500'
                 }`}
               >
-                {voiceListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                {voiceListening ? (
+                  <>
+                    <span
+                      aria-hidden="true"
+                      className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-rose-400 ring-2 ring-white animate-pulse"
+                    />
+                    <Square className="w-3 h-3 fill-current" />
+                  </>
+                ) : (
+                  <Mic className="w-3.5 h-3.5" />
+                )}
               </button>
             )}
             {/* Botón de cámara temporalmente oculto — funcionalidad de OCR pausada.
@@ -600,6 +705,22 @@ export const AlbumGrid: React.FC = () => {
             </div>
           )}
         </div>
+
+        {voiceListening && (
+          <div
+            className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-[11px] font-semibold text-rose-700 self-start space-y-1"
+            role="status"
+            aria-live="polite"
+          >
+            <div className="inline-flex items-center gap-2">
+              <span aria-hidden="true" className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+              Escuchando… decí el código (ej. PAN 16) o el nombre.
+            </div>
+            <div className="text-[10px] font-normal text-rose-600/90">
+              Si no te entiende, deletreá: “hache a i ocho”.
+            </div>
+          </div>
+        )}
 
         {voiceError && (
           <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-semibold text-amber-800" role="alert">
@@ -676,7 +797,7 @@ export const AlbumGrid: React.FC = () => {
       )}
 
       {/* 4. Stickers List Content */}
-      <div>
+      <div ref={resultsSectionRef} className="scroll-mt-4">
         <div className="flex justify-between items-center mb-2 px-1">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider inline-flex items-center gap-1">
             {searchQuery ? (
