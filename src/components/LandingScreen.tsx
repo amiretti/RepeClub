@@ -38,7 +38,7 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({ signIn, authInProg
             href="/terminos/"
             target="_blank"
             rel="noopener noreferrer"
-            className="font-semibold text-sky-700 underline underline-offset-2"
+            className="font-semibold text-blue-800 underline decoration-blue-700 underline-offset-2 hover:text-blue-900"
           >
             Términos y Condiciones
           </a>

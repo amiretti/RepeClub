@@ -12,6 +12,7 @@ import { motion } from 'motion/react';
 import { FlagIcon } from './FlagIcon';
 import { StickerScanner } from './StickerScanner.tsx';
 import { BatchAddModal } from './BatchAddModal';
+import { CountryPickerModal } from './CountryPickerModal';
 import {
   interpretVoiceTranscript,
   getSpeechRecognitionCtor,
@@ -59,6 +60,7 @@ export const AlbumGrid: React.FC = () => {
   const [scannerOpen, setScannerOpen] = useState(false);
   const [scanFeedback, setScanFeedback] = useState<string | null>(null);
   const [batchOpen, setBatchOpen] = useState(false);
+  const [countryPickerOpen, setCountryPickerOpen] = useState(false);
   const [autocompleteOpen, setAutocompleteOpen] = useState(false);
   const [autocompleteIndex, setAutocompleteIndex] = useState(-1);
   const [voiceListening, setVoiceListening] = useState(false);
@@ -571,7 +573,7 @@ export const AlbumGrid: React.FC = () => {
             aria-controls="searchAutocompleteList"
             aria-autocomplete="list"
             aria-activedescendant={autocompleteIndex >= 0 ? `suggestion-${autocompleteIndex}` : undefined}
-            className="w-full text-xs focus:text-base font-semibold pl-9 pr-20 py-2.5 bg-white border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-sky-500 shadow-xs placeholder:text-slate-450"
+            className="w-full text-xs focus:text-base font-semibold pl-9 pr-20 py-2.5 bg-white border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-sky-500 shadow-xs text-slate-900 placeholder:text-slate-500"
           />
           <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
             {searchQuery.trim() !== '' && (
@@ -750,6 +752,15 @@ export const AlbumGrid: React.FC = () => {
       {/* 3. Group / Team horizontal scroll */}
       {searchQuery === '' && (
         <div className="overflow-x-auto scrollbar-none flex gap-1.5 pb-2 -mx-4 px-4 mask-right">
+          <button
+            type="button"
+            onClick={() => setCountryPickerOpen(true)}
+            aria-label="Buscar país o sección"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100 text-xs font-bold flex-shrink-0 transition-all active:scale-95"
+          >
+            <Search className="w-3.5 h-3.5" />
+            <span>Buscar país</span>
+          </button>
           {allGroups.map((group) => {
             const isSelected = selectedGroupCode === group.code;
             return (
@@ -899,6 +910,14 @@ export const AlbumGrid: React.FC = () => {
         onClose={() => setBatchOpen(false)}
         onConfirm={handleBatchConfirm}
         inventory={inventory}
+      />
+
+      <CountryPickerModal
+        open={countryPickerOpen}
+        onClose={() => setCountryPickerOpen(false)}
+        groups={allGroups}
+        selectedCode={selectedGroupCode}
+        onSelect={setSelectedGroupCode}
       />
 
     </section>

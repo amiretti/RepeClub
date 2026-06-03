@@ -83,6 +83,8 @@ export const MatchCard: React.FC<MatchCardProps> = ({ match, isFriend, onToggleF
           aria-pressed={isFriend}
           aria-label={isFriend ? `Quitar a ${getProfileDisplayName(match.profile)} de amigos` : `Marcar a ${getProfileDisplayName(match.profile)} como amigo`}
           className={`flex-shrink-0 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-black transition-all border ${
+            match.isDoubleMatch ? 'mt-5' : ''
+          } ${
             isFriend
               ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
               : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
@@ -139,7 +141,7 @@ export const MatchCard: React.FC<MatchCardProps> = ({ match, isFriend, onToggleF
         </div>
       </div>
 
-      <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
+      <div className="mt-4 grid grid-cols-2 gap-2">
         <button
           onClick={() => onProposeTrade(match.profile.uid, match.offered, match.requested)}
           className={`w-full py-2.5 rounded-[1.25rem] font-black text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs active:scale-95 ${
@@ -169,10 +171,10 @@ export const MatchCard: React.FC<MatchCardProps> = ({ match, isFriend, onToggleF
               : 'Compartir por WhatsApp las repes que le podés dar'
           }
           aria-label="Compartir por WhatsApp las repes que le podés dar"
-          className="w-full sm:col-span-2 py-2.5 rounded-[1.25rem] font-black text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs active:scale-95 bg-emerald-500 text-white hover:bg-emerald-400 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
+          className="w-full col-span-2 py-2.5 rounded-[1.25rem] font-black text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs active:scale-95 bg-emerald-500 text-white hover:bg-emerald-400 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
         >
           <WhatsAppIcon className="w-3.5 h-3.5" />
-          Mandar mis repes por WhatsApp
+          Mandar repes
         </button>
       </div>
     </motion.div>

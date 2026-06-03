@@ -14,15 +14,15 @@ declare global {
   }
 }
 
-let googlePlacesLoader: Promise<void> | null = null;
+let googleMapsBootstrapPromise: Promise<void> | null = null;
 
-const loadGooglePlacesScript = (): Promise<void> => {
-  if (window.google?.maps?.places) {
+const bootstrapGoogleMaps = (): Promise<void> => {
+  if (window.google?.maps?.importLibrary) {
     return Promise.resolve();
   }
 
-  if (googlePlacesLoader) {
-    return googlePlacesLoader;
+  if (googleMapsBootstrapPromise) {
+    return googleMapsBootstrapPromise;
   }
 
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -30,12 +30,20 @@ const loadGooglePlacesScript = (): Promise<void> => {
     return Promise.reject(new Error('Missing Google Maps API key'));
   }
 
-  googlePlacesLoader = new Promise((resolve, reject) => {
+  googleMapsBootstrapPromise = new Promise((resolve, reject) => {
     const existingScript = document.getElementById('google-maps-places-script') as HTMLScriptElement | null;
 
+    const handleLoad = () => {
+      if (window.google?.maps?.importLibrary) {
+        resolve();
+      } else {
+        reject(new Error('Google Maps loaded without importLibrary'));
+      }
+    };
+
     if (existingScript) {
-      existingScript.addEventListener('load', () => resolve(), { once: true });
-      existingScript.addEventListener('error', () => reject(new Error('Failed to load Google Places script')), { once: true });
+      existingScript.addEventListener('load', handleLoad, { once: true });
+      existingScript.addEventListener('error', () => reject(new Error('Failed to load Google Maps script')), { once: true });
       return;
     }
 
@@ -43,13 +51,19 @@ const loadGooglePlacesScript = (): Promise<void> => {
     script.id = 'google-maps-places-script';
     script.async = true;
     script.defer = true;
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&libraries=places&language=es&region=AR&loading=async`;
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error('Failed to load Google Places script'));
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&libraries=places&language=es&region=AR&loading=async&v=weekly`;
+    script.onload = handleLoad;
+    script.onerror = () => reject(new Error('Failed to load Google Maps script'));
     document.head.appendChild(script);
   });
 
-  return googlePlacesLoader;
+  return googleMapsBootstrapPromise;
+};
+
+const loadPlacesLibrary = async (): Promise<any> => {
+  await bootstrapGoogleMaps();
+  // With loading=async, the Places library is only available via importLibrary.
+  return window.google.maps.importLibrary('places');
 };
 
 export const SettingsScreen: React.FC = () => {
@@ -87,13 +101,21 @@ export const SettingsScreen: React.FC = () => {
 
     if (!locationInputRef.current) return;
 
-    loadGooglePlacesScript()
-      .then(() => {
-        if (!isMounted || !locationInputRef.current || !window.google?.maps?.places) {
+    loadPlacesLibrary()
+      .then((placesLib) => {
+        if (!isMounted || !locationInputRef.current) {
           return;
         }
 
-        const autocomplete = new window.google.maps.places.Autocomplete(locationInputRef.current, {
+        const AutocompleteCtor =
+          placesLib?.Autocomplete || window.google?.maps?.places?.Autocomplete;
+
+        if (!AutocompleteCtor) {
+          setIsPlacesReady(false);
+          return;
+        }
+
+        const autocomplete = new AutocompleteCtor(locationInputRef.current, {
           types: ['(cities)'],
           fields: ['place_id', 'name', 'formatted_address', 'geometry']
         });
@@ -175,7 +197,7 @@ export const SettingsScreen: React.FC = () => {
                 value={nickname}
                 onChange={(e) => setNickname(e.target.value)}
                 placeholder={currentUser.name}
-                className="mt-1 w-full rounded-2xl border border-slate-200 bg-slate-50/60 px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-sky-500 focus:border-sky-500"
+                className="mt-1 w-full rounded-2xl border border-slate-200 bg-slate-50/60 px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-sky-500 focus:border-sky-500"
               />
             </label>
           </div>
@@ -202,7 +224,7 @@ export const SettingsScreen: React.FC = () => {
                 }}
                 placeholder={isPlacesReady ? 'Buscá tu ciudad' : 'Escribí tu localidad'}
                 autoComplete="off"
-                className="mt-1 w-full rounded-2xl border border-slate-200 bg-slate-50/60 px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-sky-500 focus:border-sky-500"
+                className="mt-1 w-full rounded-2xl border border-slate-200 bg-slate-50/60 px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-sky-500 focus:border-sky-500"
               />
             </label>
             <p className="text-[10px] text-slate-400">
@@ -216,7 +238,7 @@ export const SettingsScreen: React.FC = () => {
               <select
                 value={searchRadiusKm}
                 onChange={(e) => setSearchRadiusKm(Number(e.target.value))}
-                className="mt-1 w-full rounded-2xl border border-slate-200 bg-slate-50/60 px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-sky-500 focus:border-sky-500"
+                className="mt-1 w-full rounded-2xl border border-slate-200 bg-slate-50/60 px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-sky-500 focus:border-sky-500"
               >
                 {ALLOWED_SEARCH_RADII_KM.map((radius) => (
                   <option key={radius} value={radius}>{radius} km</option>
