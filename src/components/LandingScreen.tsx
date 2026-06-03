@@ -113,7 +113,7 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({ signIn, authInProg
       </div>
 
       <footer className="mt-auto">
-        <p id="onboarding_legal_desc" className="text-[10px] text-center text-slate-400 max-w-xs mx-auto">
+        <p id="onboarding_legal_desc" className="text-[10px] leading-relaxed text-center text-slate-500 max-w-xs mx-auto">
           Hecho con pasión y <span className="heartbeat" aria-hidden="true">💚</span> por{' '}
           <a
             href="https://harvi.digital"
@@ -122,6 +122,16 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({ signIn, authInProg
             className="font-bold underline decoration-[#cbdf4a] underline-offset-2"
           >
             <span className="text-[#cbdf4a]">HARVI</span>
+          </a>
+          .
+          <br />
+          <a
+            href="/terminos/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold text-blue-800 underline decoration-blue-700 underline-offset-2 hover:text-blue-900"
+          >
+            Términos y Condiciones
           </a>
           .
         </p>

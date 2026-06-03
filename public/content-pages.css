@@ -248,8 +248,10 @@ body {
   margin-top: 28px;
   border-top: 1px solid rgba(130, 193, 255, 0.28);
   padding-top: 16px;
-  color: var(--text-soft);
-  font-size: 0.9rem;
+  color: #8aa3c1;
+  font-size: 0.8rem;
+  text-align: center;
+  line-height: 1.5;
 }
 
 .heart-beat {

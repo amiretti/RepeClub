@@ -494,6 +494,38 @@
         width: 100%;
       }
 
+      .hero-preview {
+        position: relative;
+        width: min(100%, 380px);
+        margin: 6px auto 2px;
+      }
+
+      .hero-preview::before {
+        content: "";
+        position: absolute;
+        inset: 8% 6% 0%;
+        background: radial-gradient(circle at 50% 28%, rgba(117, 188, 255, 0.5), rgba(46, 242, 197, 0.24) 48%, transparent 76%);
+        filter: blur(42px);
+        z-index: 0;
+        pointer-events: none;
+      }
+
+      .hero-preview picture,
+      .hero-preview img {
+        display: block;
+        width: 100%;
+      }
+
+      .hero-preview img {
+        position: relative;
+        z-index: 1;
+        aspect-ratio: 3 / 4;
+        object-fit: cover;
+        object-position: top;
+        border-radius: 30px;
+        box-shadow: 0 10px 22px rgba(5, 13, 24, 0.28);
+      }
+
       .btn {
         min-height: 48px;
         display: inline-flex;
@@ -784,7 +816,21 @@
           <a class="btn btn-secondary" href="/como-funciona/">Cómo funciona?</a>
         </div>
 
-        <div class="hero-cards reveal-up delay-4" aria-label="Beneficios principales">
+        <div class="hero-preview reveal-up delay-4" aria-label="Vista real de la app en smartphone">
+          <picture>
+            <source srcset="/landing-hero.webp" type="image/webp" />
+            <img
+              src="/landing-hero.jpg"
+              alt="Vista real de RepeClub en un smartphone"
+              loading="eager"
+              decoding="async"
+              width="720"
+              height="960"
+            />
+          </picture>
+        </div>
+
+        <div class="hero-cards reveal-up delay-5" aria-label="Beneficios principales">
           <article class="quick-card">
             <h2>Inventario al toque</h2>
             <p>Cargás figus por código, voz o modo paquete. Rápido, simple y sin vueltas.</p>
@@ -859,7 +905,7 @@
 
         <p class="footer">
           Hecho con pasión y
-          <span class="heart-beat" role="img" aria-label="amor">💚</span> por <a href="https://harvi.digital/">Harvi</a>.
+          <span class="heart-beat" role="img" aria-label="amor">💚</span> por <a href="https://harvi.digital/">Harvi</a>.<br>
           <a href="/terminos/">Términos y Condiciones</a>.
         </p>
       </section>
