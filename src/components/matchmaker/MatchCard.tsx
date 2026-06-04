@@ -19,16 +19,25 @@ const WhatsAppIcon: React.FC<{ className?: string }> = ({ className = 'w-3.5 h-3
 interface MatchCardProps {
   match: MatchCandidate;
   isFriend: boolean;
+  currentUserDisplayName?: string;
   onToggleFriend: () => void;
   onProposeTrade: (userId: string, offered: string[], requested: string[]) => Promise<void> | void;
   onOpenManualTrade: (match: MatchCandidate) => void;
 }
 
-export const MatchCard: React.FC<MatchCardProps> = ({ match, isFriend, onToggleFriend, onProposeTrade, onOpenManualTrade }) => {
+export const MatchCard: React.FC<MatchCardProps> = ({
+  match,
+  isFriend,
+  currentUserDisplayName,
+  onToggleFriend,
+  onProposeTrade,
+  onOpenManualTrade
+}) => {
   const handleShareOfferedByWhatsApp = () => {
     const firstName = (match.profile.name || '').trim().split(/\s+/)[0] || '';
     const greeting = firstName ? `Hola ${firstName}!` : 'Hola!';
-    const inviteLine = '¿Todavía no usás RepeClub? Sumate gratis y completá el álbum más fácil 😎⚽ https://repeclub.digital/app';
+    const sharerName = currentUserDisplayName?.trim() || 'Colega figu';
+    const inviteLine = `¿Todavía no usás RepeClub? Sumate gratis y agregame a tus amigos, estoy como ${sharerName} 😎⚽ https://repeclub.digital/app`;
 
     let messageBody: string;
     if (match.offered.length === 0) {
@@ -65,7 +74,7 @@ export const MatchCard: React.FC<MatchCardProps> = ({ match, isFriend, onToggleF
               className="w-10 h-10 rounded-2xl object-cover border border-slate-100 flex-shrink-0"
             />
           ) : (
-            <div className="w-10 h-10 bg-slate-100 text-slate-700 font-extrabold rounded-2xl flex items-center justify-center text-sm border border-slate-250 flex-shrink-0">
+            <div className="w-10 h-10 bg-slate-100 text-slate-700 font-extrabold rounded-2xl flex items-center justify-center text-sm border border-slate-300 flex-shrink-0">
               {getProfileDisplayName(match.profile).charAt(0).toUpperCase()}
             </div>
           )}
@@ -95,7 +104,7 @@ export const MatchCard: React.FC<MatchCardProps> = ({ match, isFriend, onToggleF
         </button>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 mt-4 border-t border-slate-150 pt-3">
+      <div className="grid grid-cols-2 gap-3 mt-4 border-t border-slate-200 pt-3">
         <div>
           <span className="text-[9px] font-bold text-slate-400 block uppercase mb-1 tracking-wider">Te puede dar ({match.requested.length})</span>
           <div className="flex flex-wrap gap-1 max-h-16 overflow-y-auto">
@@ -118,7 +127,7 @@ export const MatchCard: React.FC<MatchCardProps> = ({ match, isFriend, onToggleF
           </div>
         </div>
 
-        <div className="border-l border-slate-150 pl-3">
+        <div className="border-l border-slate-200 pl-3">
           <span className="text-[9px] font-bold text-slate-400 block uppercase mb-1 tracking-wider">Le podés dar ({match.offered.length})</span>
           <div className="flex flex-wrap gap-1 max-h-16 overflow-y-auto">
             {match.offered.slice(0, 10).map(code => {

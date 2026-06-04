@@ -180,6 +180,7 @@ export const MatchMaker: React.FC = () => {
                   key={match.profile.uid}
                   match={match}
                   isFriend={isFriend(match.profile.uid)}
+                  currentUserDisplayName={getProfileDisplayName(currentUser) || currentUser?.name}
                   onToggleFriend={() => {
                     if (isFriend(match.profile.uid)) {
                       removeFriend(match.profile.uid);

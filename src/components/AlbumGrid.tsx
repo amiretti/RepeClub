@@ -13,6 +13,7 @@ import { FlagIcon } from './FlagIcon';
 import { StickerScanner } from './StickerScanner.tsx';
 import { BatchAddModal } from './BatchAddModal';
 import { CountryPickerModal } from './CountryPickerModal';
+import { getProfileDisplayName } from '../utils/userProfile';
 import {
   interpretVoiceTranscript,
   getSpeechRecognitionCtor,
@@ -51,7 +52,7 @@ const WhatsAppIcon: React.FC<{ className?: string }> = ({ className = 'w-3 h-3' 
 };
 
 export const AlbumGrid: React.FC = () => {
-  const { inventory, updateStickerCount } = useApp();
+  const { currentUser, inventory, updateStickerCount } = useApp();
   
   const [selectedGroupCode, setSelectedGroupCode] = useState<string>('00');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -283,7 +284,8 @@ export const AlbumGrid: React.FC = () => {
 
   const handleOpenWhatsApp = (type: 'duplicates' | 'missing') => {
     setWaStatus('idle');
-    const inviteLine = '¿Todavía no usás RepeClub? Sumate gratis y completá el álbum más fácil 😎⚽ https://repeclub.digital/app';
+    const sharerName = getProfileDisplayName(currentUser) || currentUser?.name || 'Colega figu';
+    const inviteLine = `¿Todavía no usás RepeClub? Sumate gratis y agregame a tus amigos, estoy como ${sharerName} 😎⚽ https://repeclub.digital/app`;
 
     const reportText = type === 'duplicates'
       ? (duplicateReportLines.length === 0
@@ -772,7 +774,7 @@ export const AlbumGrid: React.FC = () => {
                 className={`flex items-center gap-1 px-3 py-1.5 rounded-xl border text-xs font-bold flex-shrink-0 transition-all active:scale-95 ${
                   isSelected
                     ? 'bg-sky-600 border-sky-600 text-white shadow-md shadow-sky-100'
-                    : 'bg-white border-slate-205 text-slate-600 hover:bg-slate-50'
+                    : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
                 }`}
               >
                 <FlagIcon emoji={group.flag} label={group.name} />
@@ -842,7 +844,7 @@ export const AlbumGrid: React.FC = () => {
                       ? 'bg-gradient-to-br from-amber-50 to-yellow-50/70 border-amber-300 text-amber-900 ring-2 ring-amber-200/50 shadow-xs'
                       : hasIt
                       ? 'bg-gradient-to-br from-sky-50 to-sky-100/50 border-sky-200 text-sky-950 shadow-xs'
-                      : 'bg-white border-slate-205 text-slate-400 hover:bg-slate-50 border-dashed hover:border-slate-350 shadow-xs'
+                      : 'bg-white border-slate-200 text-slate-400 hover:bg-slate-50 border-dashed hover:border-slate-400 shadow-xs'
                   }`}
                 >
                   {/* Status Badges */}

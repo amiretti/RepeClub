@@ -126,7 +126,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSettings }) => {
                     referrerPolicy="no-referrer"
                   />
                 ) : (
-                  <div className="w-8 h-8 bg-amber-450 text-white bg-amber-400 font-extrabold rounded-full flex items-center justify-center text-xs shadow-xs border border-amber-305">
+                  <div className="w-8 h-8 bg-amber-400 text-white font-extrabold rounded-full flex items-center justify-center text-xs shadow-xs border border-amber-300">
                     {currentUser.name.charAt(0).toUpperCase()}
                   </div>
                 )}

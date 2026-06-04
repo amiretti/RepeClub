@@ -25,22 +25,22 @@ export const TradeCard: React.FC<TradeCardProps> = ({ trade, currentUserId, getU
   let statusColor = 'bg-slate-100 text-slate-600 border border-slate-200';
   let statusText = 'Pendiente';
   if (trade.status === 'accepted') {
-    statusColor = 'bg-blue-50 text-blue-850 border border-blue-200';
+    statusColor = 'bg-blue-50 text-blue-900 border border-blue-200';
     statusText = 'Aceptado (¡ya se sincronizó!)';
   } else if (trade.status === 'declined') {
-    statusColor = 'bg-red-50 text-red-700 border border-red-150';
+    statusColor = 'bg-red-50 text-red-700 border border-red-200';
     statusText = 'No aceptado';
   } else if (trade.status === 'cancelled') {
-    statusColor = 'bg-yellow-50 text-yellow-700 border border-yellow-150';
+    statusColor = 'bg-yellow-50 text-yellow-700 border border-yellow-200';
     statusText = 'Se canceló';
   }
 
   return (
     <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm">
-      <div className="flex justify-between items-start mb-3 bg-slate-50 -m-5 p-5 rounded-t-3xl border-b border-slate-150">
+      <div className="flex justify-between items-start mb-3 bg-slate-50 -m-5 p-5 rounded-t-3xl border-b border-slate-200">
         <div>
           <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider leading-none">Canje con</p>
-          <p className="font-extrabold text-slate-850 text-xs mt-1">
+          <p className="font-extrabold text-slate-900 text-xs mt-1">
             {isSender ? receiverDisplayName : senderDisplayName}
           </p>
           <span className={`mt-1 inline-flex text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider ${
@@ -63,7 +63,7 @@ export const TradeCard: React.FC<TradeCardProps> = ({ trade, currentUserId, getU
             {trade.offeredStickers.map(code => {
               const name = getStickerNameAndTeam(code).name;
               return (
-                <span key={code} title={name} className="text-[10px] font-mono font-bold bg-blue-50 text-blue-700 border border-blue-150 rounded-lg px-2 py-0.5 cursor-help">
+                <span key={code} title={name} className="text-[10px] font-mono font-bold bg-blue-50 text-blue-700 border border-blue-200 rounded-lg px-2 py-0.5 cursor-help">
                   {code}
                 </span>
               );
@@ -71,13 +71,13 @@ export const TradeCard: React.FC<TradeCardProps> = ({ trade, currentUserId, getU
           </div>
         </div>
 
-        <div className="border-l border-slate-150 pl-3">
+        <div className="border-l border-slate-200 pl-3">
           <span className="text-[9px] text-slate-400 font-bold uppercase">{askLabel}</span>
           <div className="flex flex-wrap gap-1 mt-1.5">
             {trade.requestedStickers.map(code => {
               const name = getStickerNameAndTeam(code).name;
               return (
-                <span key={code} title={name} className="text-[10px] font-mono font-bold bg-sky-50 text-sky-700 border border-sky-150 rounded-lg px-2 py-0.5 cursor-help">
+                <span key={code} title={name} className="text-[10px] font-mono font-bold bg-sky-50 text-sky-700 border border-sky-200 rounded-lg px-2 py-0.5 cursor-help">
                   {code}
                 </span>
               );
@@ -87,7 +87,7 @@ export const TradeCard: React.FC<TradeCardProps> = ({ trade, currentUserId, getU
       </div>
 
       {trade.status === 'pending' && (
-        <div className="mt-4 pt-3 border-t border-slate-150 flex gap-2">
+        <div className="mt-4 pt-3 border-t border-slate-200 flex gap-2">
           {!isSender ? (
             <>
               <button

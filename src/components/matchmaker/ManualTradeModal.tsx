@@ -96,7 +96,7 @@ export const ManualTradeModal: React.FC<ManualTradeModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/40 backdrop-blur-[1px] p-4 flex items-end sm:items-center justify-center">
       <div className="w-full max-w-2xl bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-150 flex items-start justify-between gap-3">
+        <div className="px-5 py-4 border-b border-slate-200 flex items-start justify-between gap-3">
           <div>
             <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Canje personalizado</p>
             <p className="text-sm font-extrabold text-slate-900 mt-1">Con {match.profile.name}</p>
@@ -112,7 +112,7 @@ export const ManualTradeModal: React.FC<ManualTradeModalProps> = ({
         </div>
 
         <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="rounded-2xl border border-blue-150 bg-blue-50/50 p-3">
+          <div className="rounded-2xl border border-blue-200 bg-blue-50/50 p-3">
             <p className="text-[10px] font-black uppercase tracking-wider text-blue-700">Le ofrecés ({selectedOffered.length})</p>
             <p className="text-[10px] text-blue-700/80 mt-0.5">Tus repetidas que a la otra persona le faltan.</p>
             <label className="mt-2 flex items-center gap-1.5 rounded-lg border border-blue-200 bg-white px-2 py-1.5">
@@ -152,7 +152,7 @@ export const ManualTradeModal: React.FC<ManualTradeModalProps> = ({
             </div>
           </div>
 
-          <div className="rounded-2xl border border-sky-150 bg-sky-50/50 p-3">
+          <div className="rounded-2xl border border-sky-200 bg-sky-50/50 p-3">
             <p className="text-[10px] font-black uppercase tracking-wider text-sky-700">Le pedís ({selectedRequested.length})</p>
             <p className="text-[10px] text-sky-700/80 mt-0.5">Sus repetidas que a vos te faltan.</p>
             <label className="mt-2 flex items-center gap-1.5 rounded-lg border border-sky-200 bg-white px-2 py-1.5">
