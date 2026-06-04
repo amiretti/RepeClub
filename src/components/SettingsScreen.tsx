@@ -17,7 +17,7 @@ declare global {
 let googleMapsBootstrapPromise: Promise<void> | null = null;
 
 const bootstrapGoogleMaps = (): Promise<void> => {
-  if (window.google?.maps?.importLibrary) {
+  if (window.google?.maps?.importLibrary || window.google?.maps?.places?.Autocomplete) {
     return Promise.resolve();
   }
 
@@ -34,10 +34,10 @@ const bootstrapGoogleMaps = (): Promise<void> => {
     const existingScript = document.getElementById('google-maps-places-script') as HTMLScriptElement | null;
 
     const handleLoad = () => {
-      if (window.google?.maps?.importLibrary) {
+      if (window.google?.maps?.importLibrary || window.google?.maps?.places?.Autocomplete) {
         resolve();
       } else {
-        reject(new Error('Google Maps loaded without importLibrary'));
+        reject(new Error('Google Maps cargó, pero Places Autocomplete no está disponible'));
       }
     };
 
@@ -51,8 +51,8 @@ const bootstrapGoogleMaps = (): Promise<void> => {
     script.id = 'google-maps-places-script';
     script.async = true;
     script.defer = true;
-    // Do NOT include libraries= when using loading=async — they are loaded via importLibrary() instead.
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&language=es&region=AR&loading=async&v=weekly`;
+    // Keep classic places library enabled so we work both with and without importLibrary().
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&libraries=places&language=es&region=AR&v=weekly`;
     script.onload = handleLoad;
     script.onerror = () => reject(new Error('No se pudo cargar Google Maps. Revisá que la API key tenga Places API habilitada y sin restricciones de dominio que bloqueen repeclub.digital'));
     document.head.appendChild(script);
@@ -63,8 +63,10 @@ const bootstrapGoogleMaps = (): Promise<void> => {
 
 const loadPlacesLibrary = async (): Promise<any> => {
   await bootstrapGoogleMaps();
-  // With loading=async, the Places library is only available via importLibrary.
-  return window.google.maps.importLibrary('places');
+  if (window.google?.maps?.importLibrary) {
+    return window.google.maps.importLibrary('places');
+  }
+  return { Autocomplete: window.google?.maps?.places?.Autocomplete };
 };
 
 export const SettingsScreen: React.FC = () => {
@@ -138,6 +140,7 @@ export const SettingsScreen: React.FC = () => {
         });
 
         autocompleteRef.current = autocomplete;
+        setPlacesError(null);
         setIsPlacesReady(true);
       })
       .catch((err: unknown) => {
