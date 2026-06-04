@@ -158,6 +158,12 @@ export const useMatchmaking = ({
       }
     });
 
-    return [...friends, ...others.slice(0, 5)];
+    const randomOthers = [...others];
+    for (let i = randomOthers.length - 1; i > 0; i -= 1) {
+      const randomIndex = Math.floor(Math.random() * (i + 1));
+      [randomOthers[i], randomOthers[randomIndex]] = [randomOthers[randomIndex], randomOthers[i]];
+    }
+
+    return [...friends, ...randomOthers.slice(0, 5)];
   }, [matchesByFigure, friendIds, searchNickname]);
 };

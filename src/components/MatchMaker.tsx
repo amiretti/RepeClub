@@ -14,6 +14,7 @@ import { ManualTradeModal } from './matchmaker/ManualTradeModal';
 import { useMatchmaking } from '../hooks/useMatchmaking';
 import { useTradeActions } from '../hooks/useTradeActions';
 import { MatchCandidate } from './matchmaker/types';
+import { getProfileDisplayName } from '../utils/userProfile';
 
 export const MatchMaker: React.FC = () => {
   const {
@@ -82,6 +83,18 @@ export const MatchMaker: React.FC = () => {
       showTradeFeedback('🎯 Canje automático enviado. Ahora queda esperar respuesta.');
     }
   });
+
+  const getTradeUserDisplayName = (userId: string, fallbackName?: string) => {
+    const cleanedFallback = fallbackName?.trim();
+    if (cleanedFallback) return cleanedFallback;
+
+    if (currentUser && currentUser.uid === userId) {
+      return getProfileDisplayName(currentUser) || currentUser.name;
+    }
+
+    const profile = allUsers.find((user) => user.profile.uid === userId)?.profile;
+    return getProfileDisplayName(profile) || profile?.name || 'Colega figu';
+  };
 
   const handleSubmitManualTrade = async (receiverId: string, offered: string[], requested: string[]) => {
     await createTradeOffer(receiverId, offered, requested, 'manual');
@@ -194,6 +207,7 @@ export const MatchMaker: React.FC = () => {
                 key={trade.id}
                 trade={trade}
                 currentUserId={currentUser?.uid}
+                getUserDisplayName={getTradeUserDisplayName}
                 onUpdateTradeStatus={updateTradeStatus}
               />
             ))

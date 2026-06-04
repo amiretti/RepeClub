@@ -10,14 +10,17 @@ import { TradeOffer } from '../../types';
 interface TradeCardProps {
   trade: TradeOffer;
   currentUserId?: string;
+  getUserDisplayName?: (userId: string, fallbackName?: string) => string;
   onUpdateTradeStatus: (tradeId: string, status: 'accepted' | 'declined' | 'cancelled') => Promise<void> | void;
 }
 
-export const TradeCard: React.FC<TradeCardProps> = ({ trade, currentUserId, onUpdateTradeStatus }) => {
+export const TradeCard: React.FC<TradeCardProps> = ({ trade, currentUserId, getUserDisplayName, onUpdateTradeStatus }) => {
   const isSender = trade.senderId === currentUserId;
   const tradeKind = trade.tradeType ?? 'auto';
-  const roleLabel = isSender ? 'Vos ofrecés' : `${trade.senderName} ofrece`;
-  const askLabel = isSender ? `${trade.receiverName} te da` : 'Vos le das';
+  const senderDisplayName = getUserDisplayName?.(trade.senderId, trade.senderName) || trade.senderName?.trim() || 'Colega figu';
+  const receiverDisplayName = getUserDisplayName?.(trade.receiverId, trade.receiverName) || trade.receiverName?.trim() || 'Colega figu';
+  const roleLabel = isSender ? 'Vos ofrecés' : `${senderDisplayName} ofrece`;
+  const askLabel = isSender ? `${receiverDisplayName} te da` : 'Vos le das';
 
   let statusColor = 'bg-slate-100 text-slate-600 border border-slate-200';
   let statusText = 'Pendiente';
@@ -38,7 +41,7 @@ export const TradeCard: React.FC<TradeCardProps> = ({ trade, currentUserId, onUp
         <div>
           <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider leading-none">Canje con</p>
           <p className="font-extrabold text-slate-850 text-xs mt-1">
-            {isSender ? trade.receiverName : trade.senderName}
+            {isSender ? receiverDisplayName : senderDisplayName}
           </p>
           <span className={`mt-1 inline-flex text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider ${
             tradeKind === 'manual'
