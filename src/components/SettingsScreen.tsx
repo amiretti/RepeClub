@@ -51,9 +51,10 @@ const bootstrapGoogleMaps = (): Promise<void> => {
     script.id = 'google-maps-places-script';
     script.async = true;
     script.defer = true;
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&libraries=places&language=es&region=AR&loading=async&v=weekly`;
+    // Do NOT include libraries= when using loading=async — they are loaded via importLibrary() instead.
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&language=es&region=AR&loading=async&v=weekly`;
     script.onload = handleLoad;
-    script.onerror = () => reject(new Error('Failed to load Google Maps script'));
+    script.onerror = () => reject(new Error('No se pudo cargar Google Maps. Revisá que la API key tenga Places API habilitada y sin restricciones de dominio que bloqueen repeclub.digital'));
     document.head.appendChild(script);
   });
 
@@ -79,6 +80,7 @@ export const SettingsScreen: React.FC = () => {
     lng: null
   });
   const [isPlacesReady, setIsPlacesReady] = useState(false);
+  const [placesError, setPlacesError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
 
@@ -111,7 +113,9 @@ export const SettingsScreen: React.FC = () => {
           placesLib?.Autocomplete || window.google?.maps?.places?.Autocomplete;
 
         if (!AutocompleteCtor) {
+          console.error('[Places] Autocomplete class not found after loading. placesLib keys:', Object.keys(placesLib || {}));
           setIsPlacesReady(false);
+          setPlacesError('Google Maps cargó pero no encontró el componente de autocompletado.');
           return;
         }
 
@@ -136,10 +140,12 @@ export const SettingsScreen: React.FC = () => {
         autocompleteRef.current = autocomplete;
         setIsPlacesReady(true);
       })
-      .catch(() => {
-        if (isMounted) {
-          setIsPlacesReady(false);
-        }
+      .catch((err: unknown) => {
+        if (!isMounted) return;
+        const message = err instanceof Error ? err.message : 'Error desconocido cargando Google Maps';
+        console.error('[Places] Load error:', message);
+        setIsPlacesReady(false);
+        setPlacesError(message);
       });
 
     return () => {
@@ -227,11 +233,17 @@ export const SettingsScreen: React.FC = () => {
                 className="mt-1 w-full rounded-2xl border border-slate-200 bg-slate-50/60 px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-sky-500 focus:border-sky-500"
               />
             </label>
-            <p className="text-[10px] text-slate-400">
-              {isPlacesReady
-                ? 'Usamos Google Places para autocompletar ciudades.'
-                : 'Si Google no carga, podés escribir la localidad manualmente.'}
-            </p>
+            {placesError ? (
+              <p className="text-[10px] text-red-600 font-semibold">
+                ⚠️ {placesError}
+              </p>
+            ) : (
+              <p className="text-[10px] text-slate-400">
+                {isPlacesReady
+                  ? '🗺️ Autocompletado activo — buscá y seleccioná tu ciudad.'
+                  : 'Cargando autocompletado de ciudades...'}
+              </p>
+            )}
 
             <label className="block">
               <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Radio de canjes</span>
