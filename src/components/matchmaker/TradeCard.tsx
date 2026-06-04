@@ -22,17 +22,17 @@ export const TradeCard: React.FC<TradeCardProps> = ({ trade, currentUserId, getU
   const roleLabel = isSender ? 'Vos ofrecés' : `${senderDisplayName} ofrece`;
   const askLabel = isSender ? `${receiverDisplayName} te da` : 'Vos le das';
 
-  let statusColor = 'bg-slate-100 text-slate-600 border border-slate-200';
+  let statusColor = 'bg-slate-100 text-slate-700 border border-slate-200';
   let statusText = 'Pendiente';
   if (trade.status === 'accepted') {
     statusColor = 'bg-blue-50 text-blue-900 border border-blue-200';
-    statusText = 'Aceptado (¡ya se sincronizó!)';
+    statusText = 'Sincronizado';
   } else if (trade.status === 'declined') {
     statusColor = 'bg-red-50 text-red-700 border border-red-200';
     statusText = 'No aceptado';
   } else if (trade.status === 'cancelled') {
     statusColor = 'bg-yellow-50 text-yellow-700 border border-yellow-200';
-    statusText = 'Se canceló';
+    statusText = 'Cancelado';
   }
 
   return (
@@ -51,7 +51,11 @@ export const TradeCard: React.FC<TradeCardProps> = ({ trade, currentUserId, getU
             {tradeKind === 'manual' ? 'Personalizado' : 'Automático'}
           </span>
         </div>
-        <span className={`text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider ${statusColor}`}>
+        <span
+          className={`inline-flex items-center gap-1.5 text-[10px] font-extrabold px-3 py-1.5 rounded-xl leading-none whitespace-nowrap shadow-xs ${statusColor}`}
+          title={trade.status === 'accepted' ? 'Aceptado (ya se sincronizó)' : statusText}
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-current opacity-70" aria-hidden="true" />
           {statusText}
         </span>
       </div>
