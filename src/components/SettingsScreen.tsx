@@ -72,6 +72,8 @@ const loadPlacesLibrary = async (): Promise<any> => {
 export const SettingsScreen: React.FC = () => {
   const { currentUser, updateUserSettings } = useApp();
   const locationInputRef = useRef<HTMLInputElement>(null);
+  const placeElementHostRef = useRef<HTMLDivElement>(null);
+  const placeElementRef = useRef<any>(null);
   const autocompleteRef = useRef<any>(null);
   const [nickname, setNickname] = useState('');
   const [location, setLocation] = useState('');
@@ -82,6 +84,7 @@ export const SettingsScreen: React.FC = () => {
     lng: null
   });
   const [isPlacesReady, setIsPlacesReady] = useState(false);
+  const [usingNewPlacesElement, setUsingNewPlacesElement] = useState(false);
   const [placesError, setPlacesError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -102,12 +105,80 @@ export const SettingsScreen: React.FC = () => {
   useEffect(() => {
     let isMounted = true;
     let placeChangedListener: { remove?: () => void } | null = null;
-
-    if (!locationInputRef.current) return;
+    let legacyInputListener: ((event: Event) => void) | null = null;
+    let newElementSelectListener: ((event: Event) => void) | null = null;
+    let newElementInputListener: ((event: Event) => void) | null = null;
+    let mountedPlaceElement: any = null;
 
     loadPlacesLibrary()
       .then((placesLib) => {
-        if (!isMounted || !locationInputRef.current) {
+        if (!isMounted) {
+          return;
+        }
+
+        const PlaceAutocompleteElementCtor =
+          placesLib?.PlaceAutocompleteElement || window.google?.maps?.places?.PlaceAutocompleteElement;
+
+        if (PlaceAutocompleteElementCtor && placeElementHostRef.current) {
+          const placeElement = new PlaceAutocompleteElementCtor();
+          mountedPlaceElement = placeElement;
+          placeElementRef.current = placeElement;
+          placeElement.setAttribute('aria-label', 'Buscar localidad');
+          placeElement.setAttribute('placeholder', 'Buscá tu ciudad');
+          placeElement.style.width = '100%';
+
+          if (location.trim()) {
+            placeElement.value = location;
+          }
+
+          newElementInputListener = (event: Event) => {
+            const target = event.target as HTMLInputElement | null;
+            if (!target) return;
+            setLocation(target.value || '');
+            setPlaceMeta({ placeId: null, lat: null, lng: null });
+          };
+
+          const onPlacePicked = async (event: Event) => {
+            const anyEvent = event as any;
+            const prediction = anyEvent?.placePrediction || anyEvent?.detail?.placePrediction;
+            if (!prediction?.toPlace) return;
+
+            const place = prediction.toPlace();
+            try {
+              await place.fetchFields({ fields: ['id', 'displayName', 'formattedAddress', 'location'] });
+            } catch (error) {
+              console.error('[Places] Failed fetching selected place fields:', error);
+            }
+
+            const lat = place?.location?.lat?.();
+            const lng = place?.location?.lng?.();
+            setLocation(place?.displayName || place?.formattedAddress || '');
+            setPlaceMeta({
+              placeId: place?.id || null,
+              lat: typeof lat === 'number' ? lat : null,
+              lng: typeof lng === 'number' ? lng : null
+            });
+          };
+
+          newElementSelectListener = onPlacePicked;
+
+          // Event names vary by rollout/channel; we listen to both.
+          placeElement.addEventListener('gmp-select', onPlacePicked);
+          placeElement.addEventListener('gmp-placeselect', onPlacePicked);
+          placeElement.addEventListener('input', newElementInputListener);
+
+          placeElementHostRef.current.innerHTML = '';
+          placeElementHostRef.current.appendChild(placeElement);
+
+          setUsingNewPlacesElement(true);
+          setPlacesError(null);
+          setIsPlacesReady(true);
+          return;
+        }
+
+        if (!locationInputRef.current) {
+          setIsPlacesReady(false);
+          setPlacesError('No se pudo inicializar el campo de localidad.');
           return;
         }
 
@@ -126,6 +197,14 @@ export const SettingsScreen: React.FC = () => {
           fields: ['place_id', 'name', 'formatted_address', 'geometry']
         });
 
+        legacyInputListener = (event: Event) => {
+          const target = event.target as HTMLInputElement | null;
+          if (!target) return;
+          setLocation(target.value || '');
+          setPlaceMeta({ placeId: null, lat: null, lng: null });
+        };
+        locationInputRef.current.addEventListener('input', legacyInputListener);
+
         placeChangedListener = autocomplete.addListener('place_changed', () => {
           const place = autocomplete.getPlace();
           const lat = place?.geometry?.location?.lat?.();
@@ -140,6 +219,7 @@ export const SettingsScreen: React.FC = () => {
         });
 
         autocompleteRef.current = autocomplete;
+        setUsingNewPlacesElement(false);
         setPlacesError(null);
         setIsPlacesReady(true);
       })
@@ -154,9 +234,30 @@ export const SettingsScreen: React.FC = () => {
     return () => {
       isMounted = false;
       placeChangedListener?.remove?.();
+      if (locationInputRef.current && legacyInputListener) {
+        locationInputRef.current.removeEventListener('input', legacyInputListener);
+      }
+      if (mountedPlaceElement && newElementSelectListener) {
+        mountedPlaceElement.removeEventListener('gmp-select', newElementSelectListener);
+        mountedPlaceElement.removeEventListener('gmp-placeselect', newElementSelectListener);
+      }
+      if (mountedPlaceElement && newElementInputListener) {
+        mountedPlaceElement.removeEventListener('input', newElementInputListener);
+      }
+      if (placeElementHostRef.current) {
+        placeElementHostRef.current.innerHTML = '';
+      }
+      placeElementRef.current = null;
       autocompleteRef.current = null;
     };
   }, []);
+
+  useEffect(() => {
+    if (!usingNewPlacesElement || !placeElementRef.current) return;
+    if (typeof placeElementRef.current.value === 'string' && placeElementRef.current.value !== location) {
+      placeElementRef.current.value = location;
+    }
+  }, [location, usingNewPlacesElement]);
 
   if (!currentUser) return null;
 
@@ -224,17 +325,24 @@ export const SettingsScreen: React.FC = () => {
 
             <label className="block">
               <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Localidad</span>
-              <input
-                ref={locationInputRef}
-                value={location}
-                onChange={(e) => {
-                  setLocation(e.target.value);
-                  setPlaceMeta({ placeId: null, lat: null, lng: null });
-                }}
-                placeholder={isPlacesReady ? 'Buscá tu ciudad' : 'Escribí tu localidad'}
-                autoComplete="off"
-                className="mt-1 w-full rounded-2xl border border-slate-200 bg-slate-50/60 px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-sky-500 focus:border-sky-500"
-              />
+              {usingNewPlacesElement ? (
+                <div
+                  ref={placeElementHostRef}
+                  className="mt-1 rounded-2xl border border-slate-200 bg-slate-50/60 px-3 py-2.5 text-sm text-slate-900 focus-within:ring-1 focus-within:ring-sky-500 focus-within:border-sky-500"
+                />
+              ) : (
+                <input
+                  ref={locationInputRef}
+                  value={location}
+                  onChange={(e) => {
+                    setLocation(e.target.value);
+                    setPlaceMeta({ placeId: null, lat: null, lng: null });
+                  }}
+                  placeholder={isPlacesReady ? 'Buscá tu ciudad' : 'Escribí tu localidad'}
+                  autoComplete="off"
+                  className="mt-1 w-full rounded-2xl border border-slate-200 bg-slate-50/60 px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-sky-500 focus:border-sky-500"
+                />
+              )}
             </label>
             {placesError ? (
               <p className="text-[10px] text-red-600 font-semibold">
